@@ -38,3 +38,6 @@ All notable changes to this project are documented here. The format follows
   `Fingerprint`s mechanically, never deciding what a deed *means*. A `Contradiction` is an
   observable alarm, not a judgment; the durable `Ledger` and any contradiction response are
   downstream concerns. See `BACKLOG.md`.
+
+[Unreleased]: https://github.com/tacticaldoll/shaahid/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/tacticaldoll/shaahid/releases/tag/v0.1.0

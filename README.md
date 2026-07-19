@@ -14,20 +14,19 @@ It is for the narrow space between "I must not act on the same intent twice" and
 do not want a store that guesses what 'the same' means." Shaahid witnesses and
 attests; the meaning of "the same work" is the domain's, supplied as a `Seal`.
 
-## Status (0.1.0)
+## Scope
 
-0.1.0 ships the witness core: `witness` adjudicates create-or-attach by `Seal`
-equality and detects structural contradictions (a drifted `Fingerprint` under a
-repeated `Seal`, a split `Seal` under a repeated `Fingerprint`), returning an
-`Outcome`, alongside the `Deed`/`Seal`/`Fingerprint`/`Attestation`/`Contradiction`
-vocabulary, the architectural axioms, and the executable governance. Still deferred
-(see `BACKLOG.md`): the durable `Ledger`, any contradiction-response policy, and an
-async edge.
+Shaahid is a thin sans-I/O idempotency-witness core, not a ledger or a workflow engine. It owns
+one mechanism — adjudicating create-or-attach by `Seal` equality and detecting structural
+contradictions (a drifted `Fingerprint` under a repeated `Seal`, a split `Seal` under a repeated
+`Fingerprint`) — and the `Deed`/`Seal`/`Fingerprint`/`Attestation`/`Contradiction` vocabulary, its
+architectural axioms, and executable governance; the meaning of "the same work" (the `Seal`) is the
+domain's to supply. It does **not** own a durable `Ledger`, a contradiction-response policy, or an
+async edge — those are deferred (see `BACKLOG.md`) or are downstream concerns.
 
-Depend on the curated **facade** (`shaahid`) — the recommended single entrypoint that
-re-exports the public surface and carries a runnable witness doctest. The isolated core
-(`shaahid-contract`) stays available for direct use, but `shaahid` is the crate to
-depend on.
+Depend on the curated **facade** (`shaahid`) — the recommended single entrypoint, which re-exports
+the public surface and carries a runnable witness doctest; the isolated core (`shaahid-contract`)
+stays available for direct use. See `CHANGELOG.md` for what each release adds.
 
 ## What Shaahid owns, and what the domain supplies
 
