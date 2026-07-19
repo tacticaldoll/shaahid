@@ -18,10 +18,13 @@ authoritative contributor and agent guide; this file is a short checklist.
    - check off tasks only after the Definition of Done passes
    - commit coherent compiling milestones as `feat(...)` or `fix(...)`
 4. Sync verified semantics:
-   - promote verified delta specs into `openspec/specs/`, then remove the completed
-     change directory — its content now lives in `openspec/specs/` and git history.
-     There is no archive.
+   - promote verified delta specs into `openspec/specs/`; the change directory stays —
+     the change remains active for verification
    - commit as `docs(specs): sync <change-name>`
+5. Archive the completed change:
+   - once verified, remove the change directory as a distinct gate; its deliberation
+     lives in git history (no `openspec/changes/archive/` folder)
+   - commit as `chore(<change-name>): archive <change-name>`
 
 Development branches are opened from `main` and squash-merged directly back into `main` through pull requests. Every pull request and squash commit carries a durable non-empty body. Every change passes adversarial review at both the propose and apply phases before it is committed.
 
