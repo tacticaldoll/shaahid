@@ -48,4 +48,4 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
-pub use shaahid_contract::{Attestation, Contradiction, Deed, Fingerprint, Outcome, witness};
+pub use shaahid_contract::*;
