@@ -1,10 +1,19 @@
 [workspace]
 resolver = "2"
-members = []
+members = [
+    "crates/shaahid-contract",
+    "crates/shaahid-governance",
+]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.88"
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/tacticaldoll/shaahid"
+publish = true
 
 [workspace.dependencies]
+shaahid-contract = { path = "crates/shaahid-contract", version = "0.1.0" }
+tianheng = "0.1.9"
+guibiao = "0.1.9"
