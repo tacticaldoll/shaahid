@@ -1,0 +1,15 @@
+[package]
+name = "shaahid"
+description = "Curated entrypoint for Shaahid: a thin, sans-I/O idempotency-adjudication core you compose."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["idempotency", "adjudication", "sans-io", "witness", "deduplication"]
+categories = ["rust-patterns"]
+publish.workspace = true
+
+[dependencies]
+shaahid-contract.workspace = true

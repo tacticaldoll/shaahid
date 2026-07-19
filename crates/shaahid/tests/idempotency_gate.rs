@@ -1,27 +1,22 @@
-//! Composition smoke: a minimal idempotency-gate consumer.
+//! Composition proof: an idempotency-gate consumer driven through the `shaahid` facade.
 //!
-//! This example is the first real consumer of the adjudication contract. It holds its own
-//! witnessed ledger, presents a stream of deeds, and turns each [`Outcome`] into an action
+//! This is the first real consumer of the adjudication contract. It holds its own
+//! witnessed ledger, presents a stream of deeds, and turns each `Outcome` into an action
 //! — **record** a clean create, **deduplicate** a clean attach, **quarantine** anything
-//! contradictory — using only the public API. It exists to prove two things (see the
-//! crate's `BACKLOG.md`):
+//! contradictory — using **only** the `shaahid` facade's public API, never
+//! `shaahid-contract` directly. So it doubles as proof that the facade re-exports every
+//! type a consumer needs. It proves two things:
 //!
-//! - **The seam composes:** an idempotency gate is buildable over the shipped contract
-//!   without reaching inside it.
-//! - **The core owes the consumer no extra read:** disposition needs exactly the shipped
-//!   `attestation` match and `contradictions` list. `Outcome` carries a single
-//!   `contradictions` collection, so `contradictions.is_empty()` has no compound-read trap
-//!   that a wrapper would need to close — the read stays the consumer's one-liner.
-//!
-//! Admission is the consumer's: the core witnesses and alarms, and this consumer decides
-//! what enters its ledger. The ledger here is the consumer's, never the core's.
+//! - **The seam composes:** an idempotency gate is buildable over the facade without
+//!   reaching inside the core.
+//! - **Admission is the consumer's:** the core witnesses and alarms; this consumer decides
+//!   what enters its ledger. The ledger here is the consumer's, never the core's.
 //!
 //! To have teeth, the stub domain drives four trajectories in one run: a fresh `Create`,
 //! an idempotent `Attach`, a `DriftedFingerprint` contradiction, and a `SplitSeal`
-//! contradiction. The run self-checks its end state and panics (non-zero exit) if
-//! composition or the expected outcome breaks.
+//! contradiction.
 
-use shaahid_contract::{Attestation, Contradiction, Deed, Fingerprint, witness};
+use shaahid::{Attestation, Contradiction, Deed, Fingerprint, witness};
 
 /// The consumer's disposition for a presented deed. This is edge policy — it lives in the
 /// consumer, never in the core.
@@ -39,7 +34,8 @@ fn fp(bytes: &[u8]) -> Fingerprint {
     Fingerprint::new(bytes.to_vec())
 }
 
-fn main() {
+#[test]
+fn idempotency_gate_resolves_four_trajectories() {
     // The consumer's own ledger. The core never owns, mutates, or persists it.
     let mut ledger: Vec<Deed<&'static str>> = Vec::new();
     let mut log: Vec<(&'static str, Disposition)> = Vec::new();
@@ -89,20 +85,18 @@ fn main() {
                     }
                     Contradiction::SplitSeal { witnessed_index } => ("split", *witnessed_index),
                 };
-                println!("  quarantine '{label}': {kind} vs ledger[{index}]");
+                let _ = (kind, index);
             }
             Disposition::Quarantined
         };
 
-        println!("{label}: {disposition:?}  (ledger size = {})", ledger.len());
         log.push((label, disposition));
     }
 
     check(&ledger, &log);
-    println!("composition smoke OK: witness seam composes; four trajectories resolved");
 }
 
-/// Assert the expected dispositions and final ledger; panic (non-zero exit) on any drift.
+/// Assert the expected dispositions and final ledger; the core admitted nothing itself.
 fn check(ledger: &[Deed<&'static str>], log: &[(&'static str, Disposition)]) {
     let find = |label: &str| log.iter().find(|(l, _)| *l == label).map(|(_, d)| d);
 

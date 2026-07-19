@@ -24,6 +24,11 @@ vocabulary, the architectural axioms, and the executable governance. Still defer
 (see `BACKLOG.md`): the durable `Ledger`, any contradiction-response policy, and an
 async edge.
 
+Depend on the curated **facade** (`shaahid`) — the recommended single entrypoint that
+re-exports the public surface and carries a runnable witness doctest. The isolated core
+(`shaahid-contract`) stays available for direct use, but `shaahid` is the crate to
+depend on.
+
 ## What Shaahid owns, and what the domain supplies
 
 Shaahid owns a *decision* and an *alarm*, not *meaning*. It decides create-or-attach

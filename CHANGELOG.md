@@ -19,13 +19,17 @@ _0.1.0 is being prepared; it has not yet been published to crates.io._
 - **Adjudication vocabulary**: `Deed`, `Fingerprint`, `Attestation`, `Contradiction`, and
   `Outcome`. `Seal` is a domain type parameter bounded by value-equality alone; a
   `Fingerprint` is core-owned canonical bytes, domain-produced and compared byte-for-byte.
-- **Composition example** (`examples/adjudicate_ledger.rs`): an idempotency-gate consumer
-  that holds its own ledger and disposes of each `Outcome` — record, deduplicate, or
-  quarantine — over the public API, demonstrating the create, attach, drift, and split
-  trajectories.
+- **Curated facade** (`shaahid`): the recommended single entrypoint — a pure re-export of
+  the public surface, carrying no logic of its own. Its crate-root doctest witnesses a
+  create-then-attach through the public API; `crates/shaahid/tests/idempotency_gate.rs`
+  drives the four-trajectory (create / attach / drifted-fingerprint / split-seal)
+  idempotency-gate demonstration. This retires the former `shaahid-contract`
+  `examples/adjudicate_ledger.rs`: the composition proof now lives on the facade, off the
+  core crate.
 - **Executable governance** (`shaahid-governance`): dependency-isolation, sans-I/O purity
-  (no I/O, no ambient clock, no exposed `async fn`), workspace coverage, and active-prose
-  boundaries, each with a firing test.
+  (no I/O, no ambient clock, no exposed `async fn`), a facade dependency boundary and a
+  re-exports-only source tooth, workspace coverage, and active-prose boundaries, each with
+  a firing test.
 
 ### Design
 
