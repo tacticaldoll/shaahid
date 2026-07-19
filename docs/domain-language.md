@@ -23,12 +23,17 @@ Deed (Seal + Fingerprint) -> Witness -> Attestation (Create | Attach)
   or `Attach` (the `Seal` was already witnessed, so this is the same work).
 - **Ledger** — the record of witnessed `Seal`s. Its durable persistence is a
   downstream concern, not the core.
-- **Witness** — the adjudicator role that produces an `Attestation`.
+- **Witness** — the adjudicator role (the pure `witness` function) that produces an
+  `Outcome`.
 - **Contradiction** — a structural anomaly the core can detect mechanically: the same
   `Seal` presented with a drifted `Fingerprint` (the domain reused an identity for
   changed content), or the same `Fingerprint` presented under split `Seal`s (the
   domain split an identity across identical content). A `Contradiction` is an
   observable alarm, not a judgment that the domain was "wrong".
+- **Outcome** — the full result of a `Witness`: the create-or-attach `Attestation`
+  together with every structural `Contradiction` the incoming `Deed` raised (a list,
+  possibly empty). The two axes are orthogonal — an `Attach` may still carry
+  contradictions. A neutral result container that bundles the two register terms.
 
 ## Domain-supplied meaning (the semantic bill of purity)
 

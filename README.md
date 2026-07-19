@@ -16,11 +16,13 @@ attests; the meaning of "the same work" is the domain's, supplied as a `Seal`.
 
 ## Status (0.1.0)
 
-This is the **initial project shape**, not a working witness yet. It ships the
-witness vocabulary, the architectural axioms, the executable governance, and a
-compiling crate skeleton. The adjudication and contradiction-detection core is
-defined in `openspec/specs/` and implemented in later spec-driven changes —
-deliberately, because the design still has open questions (see `BACKLOG.md`).
+0.1.0 ships the witness core: `witness` adjudicates create-or-attach by `Seal`
+equality and detects structural contradictions (a drifted `Fingerprint` under a
+repeated `Seal`, a split `Seal` under a repeated `Fingerprint`), returning an
+`Outcome`, alongside the `Deed`/`Seal`/`Fingerprint`/`Attestation`/`Contradiction`
+vocabulary, the architectural axioms, and the executable governance. Still deferred
+(see `BACKLOG.md`): the durable `Ledger`, any contradiction-response policy, and an
+async edge.
 
 ## What Shaahid owns, and what the domain supplies
 
