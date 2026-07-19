@@ -12,8 +12,8 @@ and detects structural contradictions, while making no semantic judgment of its 
 
 This repository is intentionally narrow. Shaahid is not a durable store, a
 deduplicator that guesses identity, or a workflow engine. Durability of the `Ledger`
-and any policy on a contradiction are downstream consumer concerns, not the identity
-of the core.
+and any policy on a contradiction lie outside the pattern's shape: a pure adjudication
+that owns no durable state cannot own them. They are not the identity of the core.
 
 ## Architectural Axioms
 
@@ -42,7 +42,7 @@ Before proposing or writing code, protect these axioms:
              ●  shaahid
 
    siblings: ▢ ▢ ▢   intentionally blank — this repo is sibling-blind. Which
-                     products compose together is a consumer app's knowledge, never
+                     products compose together is a composing app's knowledge, never
                      a component's; naming a sibling here would leak that knowledge
                      and rot when the roster changes.
    note: skeleton copied from the pacta reference implementation.
@@ -79,8 +79,8 @@ before it is committed. Actively challenge the design:
 - **Propose phase**: Does the change make the adjudication core heavier than the
   create-or-attach and contradiction mechanism requires? Does it smuggle a semantic
   judgment (deciding what a `Deed` *means*) into the core instead of the domain? Does
-  it treat a downstream concern (durable `Ledger`, contradiction policy) as core
-  identity?
+  it treat what lies outside the pattern's shape (a durable `Ledger`, a contradiction
+  policy) as core identity?
 - **Apply phase**: Does the implementation leak I/O, async, an ambient clock, or a
   semantic comparison into the core? Does Tianheng still bite the boundary that the
   prose claims?
