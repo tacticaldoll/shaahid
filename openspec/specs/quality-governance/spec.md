@@ -81,3 +81,28 @@ divergent subset.
 - **WHEN** the Definition of Done is documented
 - **THEN** `AGENTS.md` holds the complete gate list and other docs point to it
 
+### Requirement: Composition Is Demonstrated Executably
+The workspace SHALL carry an executable example that composes the adjudication contract
+end-to-end over the public API, so composability is an enforced, non-regressing property
+rather than a claim. The example SHALL consume only the public API, hold its witnessed
+ledger in the consumer rather than the core, and exercise four trajectories — a fresh
+`Create`, an idempotent `Attach`, a `DriftedFingerprint` contradiction, and a `SplitSeal`
+contradiction — disposing of each `Outcome` (record / deduplicate / quarantine) in its own
+loop body. It SHALL run clean under the Definition of Done.
+
+#### Scenario: The example composes end-to-end via the public API
+- **WHEN** the example is run
+- **THEN** it witnesses a stream of deeds against a consumer-held ledger through the public API and disposes of each outcome without reaching into crate internals
+
+#### Scenario: The four trajectories are exercised
+- **WHEN** the example runs its stub domain
+- **THEN** it drives a fresh create, an idempotent attach, a drifted-fingerprint contradiction, and a split-seal contradiction within one run
+
+#### Scenario: Disposition is the consumer's, not the core's
+- **WHEN** an outcome carries a contradiction
+- **THEN** the consumer quarantines the deed in its own loop body, and the core neither admits, records, nor responds to the deed
+
+#### Scenario: A broken composition fails the gate
+- **WHEN** the example fails to compose or to reach its expected ledger state
+- **THEN** running it under the Definition of Done fails rather than passing silently
+
