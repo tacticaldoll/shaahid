@@ -92,6 +92,23 @@ which are mutually exclusive.
 - **WHEN** the incoming `Deed` equals a witnessed `Deed` (same `Seal` and same `Fingerprint`)
 - **THEN** the `Outcome` is `Attach` with an empty contradiction list
 
+### Requirement: Verdict And Contradiction Enums Stay Exhaustive
+Both `Attestation` and `Contradiction` SHALL be closed Rust enums that are **not**
+`#[non_exhaustive]`. Adding any variant to either SHALL therefore be a breaking API change
+rather than a silent, additive widening. This SHALL apply equally to `Contradiction` — the
+axis more likely to grow as new structural anomalies are discovered — so that a new anomaly
+kind is introduced only through a deliberate breaking change, never hidden behind
+`#[non_exhaustive]`. The verdict and anomaly spaces are finite by design; growing them SHALL
+be a conscious, versioned decision.
+
+#### Scenario: A new variant is a breaking change
+- **WHEN** a new `Attestation` or `Contradiction` variant is introduced
+- **THEN** it lands as a deliberate breaking change (a version bump), because neither enum is `#[non_exhaustive]`
+
+#### Scenario: Downstream may match exhaustively without a wildcard
+- **WHEN** a consumer writes an exhaustive `match` over `Attestation` or `Contradiction` with no wildcard arm
+- **THEN** it compiles today, and a future added variant breaks that `match` at compile time rather than being silently absorbed
+
 ### Requirement: The Core Makes No Semantic Judgment
 Shaahid's core SHALL make no semantic judgment. Semantic identity SHALL be
 domain-supplied as a `Seal`; the core's role SHALL be limited to adjudicating by
@@ -144,6 +161,23 @@ over its `Seal` type alone (`Deed<Seal>`) and carry an owned `Fingerprint`.
 #### Scenario: The domain produces bytes; Shaahid owns the canonical representation
 - **WHEN** a `Deed` is built with a `Fingerprint`
 - **THEN** the domain supplied the bytes, Shaahid holds them in its own immutable canonical type (readable back but not mutable), and the core added no hashing dependency
+
+### Requirement: The Core Computes No Fingerprint, Tags No Algorithm, Enforces No Length
+The core SHALL treat a `Fingerprint` as opaque, domain-produced bytes only. It SHALL NOT
+compute a content hash, SHALL NOT record or require an algorithm identifier alongside the
+bytes, and SHALL NOT enforce, pad, or validate a fingerprint length. Choosing a hash
+algorithm and a length, and producing the bytes, SHALL be the domain's responsibility; the
+core owns only their canonical representation and their byte-for-byte comparison. These are
+the explicit non-goals behind the name `Fingerprint`: the name evokes a content hash, but
+the core never becomes the hasher.
+
+#### Scenario: Fingerprints of differing lengths compare, never reject
+- **WHEN** two `Fingerprint`s of different byte lengths are compared
+- **THEN** they compare as unequal, and the core enforces no length policy — neither is rejected or normalized for its length
+
+#### Scenario: The core carries no algorithm identifier and performs no hashing
+- **WHEN** a `Fingerprint` is built from domain-produced bytes
+- **THEN** it holds only those bytes, with no algorithm tag stored and no hash computed by the core
 
 ### Requirement: A Fingerprint Is Mandatory
 The `witness` entry point SHALL require a full `Deed` — a `Seal` and a `Fingerprint`.
