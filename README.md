@@ -1,45 +1,74 @@
-# rust-openspec-starter
+# Shaahid
 
-An opinionated starter for Rust projects that use OpenSpec, ADRs, conventional
-commits, and AI-agent-friendly governance from day one.
+Shaahid is a thin, sans-I/O **idempotency-adjudication** core for Rust: given a
+`Deed` (a domain-supplied `Seal` and a content `Fingerprint`), it adjudicates
+**create-or-attach** and detects structural contradictions — while making no
+semantic judgment of its own.
 
-This repository is intentionally small. It provides the process skeleton for a
-new project, not product-specific architecture.
+```text
+Deed (Seal + Fingerprint) -> Witness -> Attestation (Create | Attach)
+                                     \-> Contradiction? (Seal <-> Fingerprint mismatch)
+```
 
-## Use
+It is for the narrow space between "I must not act on the same intent twice" and "I
+do not want a store that guesses what 'the same' means." Shaahid witnesses and
+attests; the meaning of "the same work" is the domain's, supplied as a `Seal`.
 
-1. Create a new repository from this starter.
-2. Replace placeholder project metadata in `PROJECT.md`, `README.md`, and
-   `Cargo.toml`.
-3. Install or expose the OpenSpec CLI in your shell.
-4. Generate local agent shims for your editor or agent:
+## Status (0.1.0)
 
-   ```bash
-   openspec init --tools codex
-   # or: openspec init --tools claude,cursor,github-copilot
-   ```
+This is the **initial project shape**, not a working witness yet. It ships the
+witness vocabulary, the architectural axioms, the executable governance, and a
+compiling crate skeleton. The adjudication and contradiction-detection core is
+defined in `openspec/specs/` and implemented in later spec-driven changes —
+deliberately, because the design still has open questions (see `BACKLOG.md`).
 
-5. Start the first project-specific change with OpenSpec:
+## What Shaahid owns, and what the domain supplies
 
-   ```bash
-   openspec new change "initial-project-shape"
-   ```
+Shaahid owns a *decision* and an *alarm*, not *meaning*. It decides create-or-attach
+by `Seal` equality and raises a contradiction when a `Seal` and its `Fingerprint`
+disagree; it never decides what two `Deed`s *mean*. That is yours.
 
-   This change should replace placeholders, choose the real crate layout, add
-   the first specs, and make the Rust Definition of Done runnable.
+```text
+The domain supplies (meaning)              Shaahid owns (mechanism, no meaning)
+  Seal        a stable semantic identity     create-or-attach by Seal equality
+  Fingerprint the content it hashes to        Seal <-> Fingerprint contradiction alarm
+                                              (never judging whether a Seal is "right")
+```
 
-## Included
+The `Ledger`'s durability and any policy on a detected contradiction are downstream
+consumer concerns, not the core.
 
-- `AGENTS.md` - repository rules for AI coding agents and humans.
-- `PROJECT.md` - project-specific contract, terminology, and priorities.
-- `docs/development-flow.md` - short OpenSpec and commit checklist.
-- `docs/adr/` - architecture decision record skeleton.
-- `openspec/` - empty OpenSpec structure ready for specs and changes.
-- A Rust workspace policy anchor in `Cargo.toml`. It intentionally has no
-  crates until the first project-specific change chooses the real layout.
+## Why sans-I/O and no semantic judgment
 
-Generated agent shims such as `.codex/` and `.claude/` are per-clone local
-files and should not be committed.
+A pure core that reads no clock and performs no I/O cannot decide meaning either — so
+the domain supplies the `Seal`, and Shaahid only adjudicates and compares
+mechanically. This is the **semantic bill of purity**: a wrong `Seal` that still
+matches its `Fingerprint` fails silently, accepted deliberately rather than patched by
+judging meaning. See `PROJECT.md` and `BACKLOG.md`.
+
+## Domain Language
+
+Shaahid uses witness terms as architecture, not branding — `Deed`, `Seal`,
+`Fingerprint`, `Attestation`, `Ledger`, `Witness`, `Contradiction`. See
+[`docs/domain-language.md`](docs/domain-language.md).
+
+## Architecture
+
+- `PROJECT.md` — vision, positioning, non-goals.
+- `openspec/specs/` — shipped requirements.
+- `BACKLOG.md` — deferred decisions and open design questions.
+- `AGENTS.md` — operating protocol and the Definition of Done.
+
+## Contributing
+
+This project uses OpenSpec and Tianheng-native governance. Start a change with:
+
+```bash
+openspec new change "your-change-name"
+```
+
+Run the full Definition of Done (see `AGENTS.md`) before committing, and read
+`AGENTS.md` before making repository changes.
 
 ## License
 
