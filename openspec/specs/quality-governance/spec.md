@@ -1,5 +1,13 @@
-## ADDED Requirements
+# quality-governance Specification
 
+## Purpose
+The executable-governance contract for Shaahid: the Tianheng constitution and prose
+gates that enforce the architecture — crate dependency boundaries, the core's sans-I/O
+purity, workspace coverage, and active-prose presence — so the boundaries the prose
+claims are gated, not merely asserted. The one honest exception (the no-semantic-judgment
+invariant is not statically expressible) is recorded rather than papered over.
+
+## Requirements
 ### Requirement: Executable Constitution
 Shaahid SHALL enforce its architecture with an executable Tianheng constitution
 (`shaahid-governance`), so the boundaries prose claims are gated, not merely asserted.
@@ -72,3 +80,4 @@ divergent subset.
 #### Scenario: The Definition of Done is stated once
 - **WHEN** the Definition of Done is documented
 - **THEN** `AGENTS.md` holds the complete gate list and other docs point to it
+

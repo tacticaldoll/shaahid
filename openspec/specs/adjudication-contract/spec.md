@@ -1,5 +1,12 @@
-## ADDED Requirements
+# adjudication-contract Specification
 
+## Purpose
+The contract for Shaahid's idempotency-adjudication core: what a `Deed` is, how it is
+witnessed to a create-or-attach `Attestation` by `Seal` equality alone, the structural
+`Contradiction` the core can raise, and the identity vocabulary the domain supplies —
+all sans-I/O and free of semantic judgment.
+
+## Requirements
 ### Requirement: Witness Vocabulary
 Shaahid SHALL name the adjudication roles with a fixed witness register: `Deed` (a
 unit of work presented to be witnessed), `Seal` (the domain-supplied stable semantic
@@ -14,15 +21,43 @@ These terms are architecture, not branding.
 
 ### Requirement: Adjudication Is Create-Or-Attach
 Shaahid SHALL adjudicate a witnessed `Deed` to an `Attestation` of `Create` (its
-`Seal` is new to the `Ledger`) or `Attach` (its `Seal` was already witnessed). The
-decision SHALL be `Seal` equality — mechanical, never a comparison of meaning. This
-requirement defines the adjudication contract; the algorithm that produces an
-`Attestation` is realized in a later spec-driven change (see `BACKLOG.md`), so at this
-shape the constraint binds the design rather than describing a shipped algorithm.
+`Seal` is new to the witnessed set) or `Attach` (its `Seal` is already witnessed).
+The decision SHALL be `Seal` equality — mechanical, never a comparison of meaning.
+Adjudication SHALL be a **pure function** of the witnessed `Seal`s (the `Ledger`'s
+content, supplied to the core as a value at the edge) and the `Deed`:
+`(witnessed set, Deed) -> Attestation`. The core SHALL NOT own, persist, or mutate
+`Ledger` state, SHALL NOT require a `Registry`-like obligation trait, and SHALL NOT
+read an ambient clock or perform I/O to reach the decision. The core SHALL be
+generic over the `Seal` and `Fingerprint` types, constraining each only by the
+minimal capability adjudication uses — so it freezes their *shape* but never the
+domain's concrete identity types.
 
 #### Scenario: A new Seal creates; a witnessed Seal attaches
-- **WHEN** a `Deed` is witnessed whose `Seal` is not yet in the `Ledger`, then again with the same `Seal`
-- **THEN** the contract requires the first be attested `Create` and the second `Attach`, decided by `Seal` equality alone (once the algorithm is realized — see `BACKLOG.md`)
+- **WHEN** a `Deed` is witnessed whose `Seal` is not in the supplied witnessed set, then again with that same `Seal` now present in the witnessed set
+- **THEN** the first is attested `Create` and the second `Attach`, decided by `Seal` equality alone
+
+#### Scenario: Adjudication is a pure function of supplied state
+- **WHEN** the same witnessed set and the same `Deed` are adjudicated twice
+- **THEN** the resulting `Attestation` is identical, and the core reads no state beyond the supplied witnessed set and the `Deed` (no ambient clock, no I/O, no core-persisted `Ledger`)
+
+### Requirement: Attestation Is A Closed Create-Or-Attach Enum
+`Attestation` SHALL be a closed enum of exactly two variants — `Create` and `Attach`
+— and SHALL NOT grow into a DSL or open extension surface. `Create` SHALL denote that
+the `Deed`'s `Seal` was new to the witnessed set. `Attach` SHALL denote that the
+`Seal` was already witnessed and SHALL carry **only that `Seal`, by value** — the
+`Seal` the `Deed` presented, which is equal by value to the already-witnessed one. The
+core SHALL hand back the presented `Seal` rather than clone the witnessed element, so
+it requires only value-equality of a `Seal`, never `Clone`. `Attach` SHALL NOT carry
+any reference or handle into a `Ledger`, a `Deed` store, or any downstream policy or
+response.
+
+#### Scenario: The verdict is one of exactly two closed variants
+- **WHEN** adjudication produces an `Attestation`
+- **THEN** it is either `Create` or `Attach`, with no third outcome and no embedded policy or response
+
+#### Scenario: Attach carries only the presented Seal, by value
+- **WHEN** a `Deed` whose `Seal` is already witnessed is adjudicated
+- **THEN** the `Attach` variant carries that presented `Seal` (equal by value to the already-witnessed one) and nothing else — no reference into a `Ledger` or `Deed` store, and nothing that would make the core own a response
 
 ### Requirement: The Core Makes No Semantic Judgment
 Shaahid's core SHALL make no semantic judgment. Semantic identity SHALL be
@@ -42,8 +77,11 @@ accepted rather than patched by judging meaning.
 
 ### Requirement: Seals Are Domain-Supplied And Opaque
 A `Seal` SHALL be domain-supplied, stable across witnesses, and changed only on a
-genuine semantic change. The core SHALL carry a `Seal` opaquely and SHALL NOT
-interpret it.
+genuine semantic change. The `Seal` type SHALL be a **generic parameter** the domain
+supplies; the core SHALL carry it opaquely and SHALL NOT interpret it. For
+adjudication the core SHALL bound the `Seal` type by **value-equality alone**; it
+SHALL NOT require ordering, inspect the `Seal`'s contents, or otherwise interpret its
+meaning.
 
 #### Scenario: The same intent keeps its Seal
 - **WHEN** the same intent is witnessed again
@@ -53,13 +91,25 @@ interpret it.
 - **WHEN** the core handles a `Seal`
 - **THEN** it treats it as an opaque identity, compared by value, never by meaning
 
+#### Scenario: Adjudication needs only Seal equality
+- **WHEN** the core tests whether a `Deed`'s `Seal` is already witnessed
+- **THEN** it uses value-equality against the witnessed `Seal`s alone, requiring no ordering or interpretation of the `Seal`
+
 ### Requirement: Fingerprints Are Mechanical Content Identity
-A `Fingerprint` SHALL be the mechanical content identity of a `Deed` and SHALL be
-compared byte-wise by the core, encoding content rather than meaning.
+A `Fingerprint` SHALL be the mechanical content identity of a `Deed`,
+**domain-supplied** — received by the core, never computed by it, so
+`shaahid-contract` stays dependency-free — and SHALL be compared byte-wise by the
+core, encoding content rather than meaning. The `Fingerprint` type SHALL be a
+**generic parameter** the domain supplies, bounded only by the byte-wise comparison
+the core performs.
 
 #### Scenario: Fingerprints compare byte-wise
 - **WHEN** the core compares two `Fingerprint`s
 - **THEN** it compares their bytes, making no judgment about what the content means
+
+#### Scenario: The core receives the Fingerprint, never computes it
+- **WHEN** a `Deed` carries a `Fingerprint`
+- **THEN** the domain has already computed it and the core only carries and compares it, adding no hashing dependency to `shaahid-contract`
 
 ### Requirement: Contradiction Is A Structural Alarm
 Shaahid SHALL be able to detect a structural `Contradiction` mechanically — the same
@@ -93,3 +143,4 @@ stays isolated and reusable.
 #### Scenario: The core is isolated
 - **WHEN** `shaahid-contract`'s manifest is read
 - **THEN** it declares no dependency on another workspace crate
+
