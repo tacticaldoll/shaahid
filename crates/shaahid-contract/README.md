@@ -8,9 +8,11 @@ and makes no semantic judgment of its own: the meaning of "the same work" is the
 domain's, supplied as a `Seal`. It exposes no `async fn`, reads no ambient clock, and
 performs no I/O; a runtime drives it.
 
-This is the initial shape — the vocabulary anchors (`Seal`, `Fingerprint`,
-`Attestation`) and axioms are in place; the adjudication and contradiction-detection
-logic follow in later spec-driven changes.
+0.1.0 ships the witness core: `witness` adjudicates create-or-attach by `Seal`
+equality and detects structural contradictions, returning an `Outcome`, alongside the
+`Deed`/`Seal`/`Fingerprint`/`Attestation`/`Contradiction` vocabulary and the axioms.
+The durable `Ledger`, any contradiction-response policy, and an async edge remain
+deferred.
 
 Part of [Shaahid](https://github.com/tacticaldoll/shaahid).
 
