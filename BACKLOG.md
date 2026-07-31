@@ -98,6 +98,20 @@ Inherited discipline first, then this project's own resolved design decisions.
   call's inputs, holds no cross-witness state, and compares incoming-versus-each-
   witnessed (it does not audit the witnessed ledger against itself). Durable `Ledger`
   persistence stays downstream.
+- **Composition demonstrated; no `Outcome` consumption read — resolved.** A composition
+  example (`crates/shaahid-contract/examples/adjudicate_ledger.rs`) is the first real
+  consumer: it holds its own ledger and turns each `Outcome` into a disposition — record a
+  clean `Create`, deduplicate a clean `Attach`, quarantine any `Contradiction` — over the
+  public API alone, driving four trajectories (create / attach / drift / split). Building
+  it settled whether the core owes a consumer a mechanical read on `Outcome` (e.g.
+  `is_clean`/`has_contradictions`): **no.** `Outcome` carries a single `contradictions`
+  collection, so `contradictions.is_empty()` has no compound-read trap (there is no second
+  collection a consumer could forget), and the `attestation` axis is a separate,
+  unavoidable match; a wrapper would add surface without closing a failure. The consumer
+  opting into `Clone` to retain a deed past the value-consuming `witness` is a consumer
+  choice, not a core imposition — the core still bounds `Seal` by `Eq` alone. Disposition
+  (including quarantine winning over an `Attach`-with-drift) is edge policy in the
+  consumer's loop body; the core admits and responds to nothing.
 
 ## Explicitly Deferred
 
