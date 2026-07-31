@@ -1,16 +1,16 @@
-//! Composition proof: an idempotency-gate consumer driven through the `shaahid` facade.
+//! Composition proof: an idempotency-gate composer driven through the `shaahid` facade.
 //!
-//! This is the first real consumer of the adjudication contract. It holds its own
+//! This is the first real composer of the adjudication contract. It holds its own
 //! witnessed ledger, presents a stream of deeds, and turns each `Outcome` into an action
 //! — **record** a clean create, **deduplicate** a clean attach, **quarantine** anything
 //! contradictory — using **only** the `shaahid` facade's public API, never
 //! `shaahid-contract` directly. So it doubles as proof that the facade re-exports every
-//! type a consumer needs. It proves two things:
+//! type a composing system needs. It proves two things:
 //!
 //! - **The seam composes:** an idempotency gate is buildable over the facade without
 //!   reaching inside the core.
-//! - **Admission is the consumer's:** the core witnesses and alarms; this consumer decides
-//!   what enters its ledger. The ledger here is the consumer's, never the core's.
+//! - **Admission is the composer's:** the core witnesses and alarms; this composer decides
+//!   what enters its ledger. The ledger here is the composer's, never the core's.
 //!
 //! To have teeth, the stub domain drives four trajectories in one run: a fresh `Create`,
 //! an idempotent `Attach`, a `DriftedFingerprint` contradiction, and a `SplitSeal`
@@ -18,8 +18,8 @@
 
 use shaahid::{Attestation, Contradiction, Deed, Fingerprint, witness};
 
-/// The consumer's disposition for a presented deed. This is edge policy — it lives in the
-/// consumer, never in the core.
+/// The composer's disposition for a presented deed. This is edge policy — it lives in the
+/// composer, never in the core.
 #[derive(Debug, PartialEq, Eq)]
 enum Disposition {
     /// A clean `Create`: fresh work, appended to the ledger.
@@ -36,7 +36,7 @@ fn fp(bytes: &[u8]) -> Fingerprint {
 
 #[test]
 fn idempotency_gate_resolves_four_trajectories() {
-    // The consumer's own ledger. The core never owns, mutates, or persists it.
+    // The composer's own ledger. The core never owns, mutates, or persists it.
     let mut ledger: Vec<Deed<&'static str>> = Vec::new();
     let mut log: Vec<(&'static str, Disposition)> = Vec::new();
 
@@ -63,8 +63,8 @@ fn idempotency_gate_resolves_four_trajectories() {
 
     for (label, incoming) in stream {
         // Witness a clone so the deed survives for a possible record: `witness` consumes its
-        // incoming, and the core bounds `Seal` by `Eq` alone — retaining is the consumer's
-        // choice, so the consumer (not the core) opts into `Clone`.
+        // incoming, and the core bounds `Seal` by `Eq` alone — retaining is the composer's
+        // choice, so the composer (not the core) opts into `Clone`.
         let outcome = witness(&ledger, incoming.clone());
 
         let disposition = if outcome.contradictions.is_empty() {

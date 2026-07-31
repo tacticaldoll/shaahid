@@ -29,7 +29,8 @@
 //!
 //! It observes; it does not decide admission. Whether to record an incoming `Deed` (even
 //! a contradictory one) into a durable `Ledger`, and any response to a `Contradiction`,
-//! are downstream consumer concerns. Persisting the `Ledger` and an `async` variant are
+//! lie outside the pattern's shape — a pure adjudication that owns no durable state and
+//! makes no judgment cannot own them. Persisting the `Ledger` and an `async` variant are
 //! likewise out of this core (see `BACKLOG.md`).
 
 #![forbid(unsafe_code)]
@@ -92,7 +93,7 @@ impl<Seal> Deed<Seal> {
 /// A closed, two-variant settlement — deliberately **not** `#[non_exhaustive]`. The
 /// verdict space is finite by design, so a genuinely new outcome should force a
 /// deliberate breaking change rather than silently widening the surface. The verdict is
-/// a mechanism, never a policy: it carries no response to attach — that is downstream.
+/// a mechanism, never a policy: it carries no response to attach — that lies outside the pattern.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Attestation<Seal> {
     /// The deed's `Seal` was new to the witnessed set: witness it as fresh work.
