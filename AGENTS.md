@@ -61,6 +61,8 @@ sibling product.
 - `BACKLOG.md` records deferred decisions, open design questions, and candidate
   patterns, not mandatory phases.
 - `AGENTS.md` is operating protocol for agents and contributors.
+- `AGENTS.shaahid-law.md` is the generated, freshness-gated projection of the
+  executable Tianheng Constitution. Read it after this file; do not edit it by hand.
 
 Decision provenance lives in git — the commit body and pull request that made a
 change record its rationale. Forward-looking or reversed decisions are noted in

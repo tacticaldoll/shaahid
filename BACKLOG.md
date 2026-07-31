@@ -71,7 +71,17 @@ compares meanings. Do not freeze a user-obligation trait ahead of its first comp
 
 Inherited discipline first, then this project's own resolved design decisions.
 
-
+- **Tianheng 0.3 adopter capabilities — resolved.** Governance now depends directly
+  only on the composed `tianheng` shell. One Constitution feeds the runner, clean
+  reaction, complete workspace-coverage assertion, structured negative proofs, and
+  the freshness-gated `AGENTS.shaahid-law.md` projection. The existing clock-free and
+  synchronous-API laws are expressed through `SansIoPure`; its honest observation
+  surface is only clock calls plus public `async fn`, so the explicit
+  `std::io/fs/net/process` boundaries remain. Normal, development, and build
+  dependency tables are independently closed for every workspace crate. No baseline
+  was adopted: Shaahid had no Tianheng baseline to migrate, and new drift is not
+  absorbed. Custom active-prose and facade-source reactions remain outside the
+  generated Tianheng projection.
 - **Self-positioning reclaimed — resolved.** The governing prose defined the product
   consumer-relative — justifying each non-goal by a downstream *consumer* rather than by
   the pattern's own shape — the consumer-driven frame leaking into governance. Re-anchored
@@ -186,7 +196,7 @@ Inherited discipline first, then this project's own resolved design decisions.
   core `pub` is already public API. Keeping the named list for legibility was rejected:
   rustdoc and the crate-level prose already enumerate the surface. Adding a governance
   tooth to force the glob was considered and rejected: `shaahid-governance` may use only
-  `tianheng`/`guibiao` (no `syn`), the compiler already enforces completeness, and this
+  `tianheng` (no `syn`), the compiler already enforces completeness, and this
   record plus the changelog fix the decision. The exported surface is unchanged — the six
   items (`Fingerprint`, `Deed`, `Attestation`, `Contradiction`, `Outcome`, `witness`) were
   already the whole surface.

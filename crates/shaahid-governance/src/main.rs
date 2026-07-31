@@ -11,10 +11,9 @@ use std::{
 use tianheng::prelude::*;
 
 const CONTRACT_REASON: &str = "shaahid-contract is the isolated adjudication core. At this shape it depends on nothing, and must never depend on another workspace crate or a runtime framework: its adjudication is pure.";
-const GOVERNANCE_REASON: &str = "the governance gate must stay independent of the workspace graph it judges: it may depend only on governance-family tooling (tianheng and its guibiao coverage core), never on a workspace crate under judgment.";
+const GOVERNANCE_REASON: &str = "the governance gate must stay independent of the workspace graph it judges: it may depend only on the tianheng governance harness, never on a workspace crate under judgment.";
 const CORE_NO_IO_REASON: &str = "the sans-I/O adjudication core performs no I/O: no code in shaahid-contract may call into std::io/fs/net/process; I/O lives in a runtime outside the core. Coverage is partial by nature (I/O entry points cannot be enumerated, and macro-expanded I/O such as println! is invisible to a source scan), so this tooth complements review rather than replacing it.";
-const AMBIENT_TIME_REASON: &str = "the adjudication core must read no ambient clock; the witnessed state is supplied at the runtime edge, never read inside shaahid-contract.";
-const CORE_ASYNC_REASON: &str = "the sans-I/O adjudication core must stay runtime-agnostic: its public API must never expose an async fn, so no runtime shape leaks into the contract.";
+const CORE_PURITY_REASON: &str = "the sans-I/O adjudication core reads no ambient clock and stays runtime-agnostic: witnessed state is supplied at the runtime edge, and its public API exposes no async fn.";
 const FACADE_REASON: &str = "shaahid is the curated published entrypoint. It may depend only on shaahid-contract, never on a backend, runtime, or external framework.";
 const FACADE_REEXPORT_REASON: &str =
     "the shaahid facade must stay a pure re-export entrypoint and hold no logic of its own";
@@ -33,6 +32,20 @@ const ACTIVE_PROSE_FILES: &[&str] = &[
     "docs/development-flow.md",
     "docs/domain-language.md",
 ];
+
+#[cfg(test)]
+const LAW_PROJECTION_PREAMBLE: &str = "\
+# Shaahid Tianheng Law Projection
+
+Generated from `constitution()` in `crates/shaahid-governance/src/main.rs`.
+**Do not edit by hand.** Regenerate it with:
+`BLESS=1 cargo test -p shaahid-governance law_projection_is_fresh`.
+If the law itself is wrong, amend the Constitution through the governed OpenSpec workflow.
+
+This projection covers Tianheng-observable structure only. The custom active-prose and
+facade-reexports reactions remain executable in `shaahid-governance`, but are outside
+Tianheng's generated projection.
+";
 
 // No legacy vocabulary exists to guard against at this shape — Shaahid is new, with no
 // prior architecture to regress toward. The hook below is ready: add entries as real
@@ -63,8 +76,32 @@ fn constitution() -> Constitution {
                 .because(CONTRACT_REASON),
         )
         .boundary(
+            CrateBoundary::crate_("shaahid-contract")
+                .restrict_dependencies_to(Vec::<&str>::new())
+                .dependency_kind(DependencyKind::Dev)
+                .because(CONTRACT_REASON),
+        )
+        .boundary(
+            CrateBoundary::crate_("shaahid-contract")
+                .restrict_dependencies_to(Vec::<&str>::new())
+                .dependency_kind(DependencyKind::Build)
+                .because(CONTRACT_REASON),
+        )
+        .boundary(
             CrateBoundary::crate_("shaahid-governance")
-                .restrict_dependencies_to(["tianheng", "guibiao"])
+                .restrict_dependencies_to(["tianheng"])
+                .because(GOVERNANCE_REASON),
+        )
+        .boundary(
+            CrateBoundary::crate_("shaahid-governance")
+                .restrict_dependencies_to(Vec::<&str>::new())
+                .dependency_kind(DependencyKind::Dev)
+                .because(GOVERNANCE_REASON),
+        )
+        .boundary(
+            CrateBoundary::crate_("shaahid-governance")
+                .restrict_dependencies_to(Vec::<&str>::new())
+                .dependency_kind(DependencyKind::Build)
                 .because(GOVERNANCE_REASON),
         )
         .boundary(
@@ -73,11 +110,22 @@ fn constitution() -> Constitution {
                 .because(FACADE_REASON),
         )
         .boundary(
-            ModuleBoundary::in_crate("shaahid-contract")
+            CrateBoundary::crate_("shaahid")
+                .restrict_dependencies_to(Vec::<&str>::new())
+                .dependency_kind(DependencyKind::Dev)
+                .because(FACADE_REASON),
+        )
+        .boundary(
+            CrateBoundary::crate_("shaahid")
+                .restrict_dependencies_to(Vec::<&str>::new())
+                .dependency_kind(DependencyKind::Build)
+                .because(FACADE_REASON),
+        )
+        .sans_io_pure(
+            SansIoPure::in_crate("shaahid-contract")
                 .module("crate")
-                .must_not_call_inline("std::time")
-                .ending_with(["now"])
-                .because(AMBIENT_TIME_REASON),
+                .reading_clock_via("std::time", ["now"])
+                .because(CORE_PURITY_REASON),
         )
         .boundary(
             ModuleBoundary::in_crate("shaahid-contract")
@@ -102,13 +150,6 @@ fn constitution() -> Constitution {
                 .module("crate")
                 .must_not_call_inline("std::process")
                 .because(CORE_NO_IO_REASON),
-        )
-        .async_exposure_boundary(
-            AsyncExposureBoundary::in_crate("shaahid-contract")
-                .module("crate")
-                .must_not_expose_async_fn()
-                .including_submodules()
-                .because(CORE_ASYNC_REASON),
         )
 }
 
@@ -333,13 +374,28 @@ fn collect_rs_files(dir: &Path) -> Vec<PathBuf> {
 mod tests {
     use super::*;
 
+    const DEPENDENCY_RULE: &str = "tianheng.rule/guibiao/restrict-dependencies-to";
+    const DEPENDENCY_FACT: &str = "tianheng.fact/guibiao/dependency";
+    const INLINE_RULE: &str = "tianheng.rule/guibiao/confine-inline-symbol-path";
+    const INLINE_FACT: &str = "tianheng.fact/guibiao/inline-path";
+    const ASYNC_RULE: &str = "tianheng.rule/hunyi/async-exposure";
+    const ASYNC_FACT: &str = "tianheng.fact/hunyi/async-exposure";
+
     #[test]
     fn current_workspace_satisfies_constitution() {
-        let manifest = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../Cargo.toml");
+        governance_test().assert_clean();
+    }
 
-        assert_eq!(
-            check(constitution().static_boundaries(), &manifest),
-            Outcome::Clean
+    #[test]
+    fn every_workspace_crate_is_covered() {
+        governance_test().assert_all_workspace_members_covered();
+    }
+
+    #[test]
+    fn law_projection_is_fresh() {
+        governance_test().assert_projection_fresh_with_preamble(
+            "AGENTS.shaahid-law.md",
+            LAW_PROJECTION_PREAMBLE,
         );
     }
 
@@ -363,20 +419,95 @@ tokio = { path = "../tokio" }
             "tokio",
         ]);
 
-        let outcome = check(
-            constitution().static_boundaries(),
-            &workspace.path.join("Cargo.toml"),
-        );
+        let outcome = check_constitution(&constitution(), &workspace.path.join("Cargo.toml"));
 
         let Outcome::Violations(report) = outcome else {
             panic!("expected an unapproved dependency violation, got {outcome:?}");
         };
-        assert!(report.violations.iter().any(|violation| {
-            let id = violation.id();
-            id.target == "shaahid-contract"
-                && id.rule == "restrict dependencies to"
-                && id.finding == "tokio"
-        }));
+        assert_violation(
+            &report,
+            "shaahid-contract",
+            DEPENDENCY_RULE,
+            DEPENDENCY_FACT,
+            "dependency-edge",
+            &[("kind", "normal"), ("package", "tokio")],
+        );
+    }
+
+    #[test]
+    fn dependency_table_tightening_reacts_with_structured_identities() {
+        let workspace = TempWorkspace::new("shaahid-governance-dependency-table-tightening");
+        workspace.write_package("tokio", "");
+        workspace.write_package("guibiao", "");
+        workspace.write_package(
+            "shaahid-contract",
+            r#"
+[dev-dependencies]
+tokio = { path = "../tokio" }
+
+[build-dependencies]
+tokio = { path = "../tokio" }
+"#,
+        );
+        workspace.write_package(
+            "shaahid-governance",
+            r#"
+[dependencies]
+guibiao = { path = "../guibiao" }
+"#,
+        );
+        workspace.write_facade();
+        workspace.write_root_manifest_members(&[
+            "shaahid",
+            "shaahid-contract",
+            "shaahid-governance",
+            "tokio",
+            "guibiao",
+        ]);
+
+        let outcome = check_constitution(&constitution(), &workspace.path.join("Cargo.toml"));
+        let Outcome::Violations(report) = outcome else {
+            panic!("expected dependency-table violations, got {outcome:?}");
+        };
+        assert_eq!(
+            report.violations.len(),
+            3,
+            "the tightening fixture should isolate exactly its three declared dependency facts"
+        );
+        assert_violation(
+            &report,
+            "shaahid-contract",
+            DEPENDENCY_RULE,
+            DEPENDENCY_FACT,
+            "dependency-edge",
+            &[("kind", "dev"), ("package", "tokio")],
+        );
+        assert_violation(
+            &report,
+            "shaahid-contract",
+            DEPENDENCY_RULE,
+            DEPENDENCY_FACT,
+            "dependency-edge",
+            &[("kind", "build"), ("package", "tokio")],
+        );
+        assert_violation(
+            &report,
+            "shaahid-governance",
+            DEPENDENCY_RULE,
+            DEPENDENCY_FACT,
+            "dependency-edge",
+            &[("kind", "normal"), ("package", "guibiao")],
+        );
+
+        let manifest = workspace.path.join("Cargo.toml").display().to_string();
+        assert_eq!(
+            tianheng::run(
+                &constitution(),
+                ["shaahid-governance", "check", "--manifest-path", &manifest],
+            ),
+            ExitCode::from(1),
+            "an enforced candidate violation must map to the runner's exit-1 contract"
+        );
     }
 
     #[test]
@@ -398,20 +529,18 @@ tokio = { path = "../tokio" }
             "shaahid-governance",
         ]);
 
-        let outcome = check(
-            constitution().static_boundaries(),
-            &workspace.path.join("Cargo.toml"),
-        );
+        let outcome = check_constitution(&constitution(), &workspace.path.join("Cargo.toml"));
 
         let Outcome::Violations(report) = outcome else {
             panic!("expected a no-I/O violation, got {outcome:?}");
         };
-        assert!(
-            report.violations.iter().any(|violation| {
-                let id = violation.id();
-                id.target == "std::fs" && id.rule == "inline symbol path confined to module"
-            }),
-            "expected the core no-I/O boundary to fire: {report:?}"
+        assert_violation(
+            &report,
+            "std::fs",
+            INLINE_RULE,
+            INLINE_FACT,
+            "path-in-module",
+            &[("module", "crate"), ("path", "std::fs::metadata")],
         );
     }
 
@@ -433,20 +562,18 @@ tokio = { path = "../tokio" }
             "shaahid-governance",
         ]);
 
-        let outcome = check(
-            constitution().static_boundaries(),
-            &workspace.path.join("Cargo.toml"),
-        );
+        let outcome = check_constitution(&constitution(), &workspace.path.join("Cargo.toml"));
 
         let Outcome::Violations(report) = outcome else {
             panic!("expected an ambient-clock violation, got {outcome:?}");
         };
-        assert!(
-            report.violations.iter().any(|violation| {
-                let id = violation.id();
-                id.target == "std::time" && id.rule == "inline symbol path confined to module"
-            }),
-            "expected the core ambient-clock boundary to fire: {report:?}"
+        assert_violation(
+            &report,
+            "std::time",
+            INLINE_RULE,
+            INLINE_FACT,
+            "path-in-module",
+            &[("module", "crate"), ("path", "std::time::SystemTime::now")],
         );
     }
 
@@ -540,22 +667,18 @@ tokio = { path = "../tokio" }
             "tokio",
         ]);
 
-        let outcome = check(
-            constitution().static_boundaries(),
-            &workspace.path.join("Cargo.toml"),
-        );
+        let outcome = check_constitution(&constitution(), &workspace.path.join("Cargo.toml"));
 
         let Outcome::Violations(report) = outcome else {
             panic!("expected an unapproved facade dependency violation, got {outcome:?}");
         };
-        assert!(
-            report.violations.iter().any(|violation| {
-                let id = violation.id();
-                id.target == "shaahid"
-                    && id.rule == "restrict dependencies to"
-                    && id.finding == "tokio"
-            }),
-            "expected the facade dependency boundary to fire: {report:?}"
+        assert_violation(
+            &report,
+            "shaahid",
+            DEPENDENCY_RULE,
+            DEPENDENCY_FACT,
+            "dependency-edge",
+            &[("kind", "normal"), ("package", "tokio")],
         );
     }
 
@@ -577,26 +700,6 @@ tokio = { path = "../tokio" }
     }
 
     #[test]
-    fn every_workspace_crate_is_covered() {
-        // Tianheng coverage is advisory and never fails CI, so assert completeness here
-        // through the native projection. `check_and_cover` takes the static (guibiao)
-        // constitution and reads real `cargo metadata`.
-        let manifest = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../Cargo.toml");
-        let (_outcome, coverage) =
-            guibiao::check_and_cover(constitution().static_boundaries(), &manifest);
-        let coverage = coverage.expect("workspace metadata should be readable in-repo");
-        assert!(
-            coverage.total > 0,
-            "coverage read no crates — the gate would pass vacuously"
-        );
-        assert!(
-            coverage.uncovered.is_empty(),
-            "every workspace crate must have a dependency boundary; ungoverned: {:?}",
-            coverage.uncovered
-        );
-    }
-
-    #[test]
     fn core_async_exposure_reaction_fires() {
         let outcome = semantic_reaction_outcome(
             "shaahid-governance-core-async-leak",
@@ -606,12 +709,18 @@ tokio = { path = "../tokio" }
         let Outcome::Violations(report) = outcome else {
             panic!("expected a core async-exposure violation, got {outcome:?}");
         };
-        assert!(
-            report.violations.iter().any(|violation| {
-                let id = violation.id();
-                id.target == "crate" && id.rule == "must not expose async fn"
-            }),
-            "expected the core async-exposure boundary to fire: {report:?}"
+        assert_violation(
+            &report,
+            "crate",
+            ASYNC_RULE,
+            ASYNC_FACT,
+            "async-free-function",
+            &[
+                ("module", "crate"),
+                ("name", "leak"),
+                ("owner", "crate"),
+                ("owner_kind", "module"),
+            ],
         );
     }
 
@@ -627,12 +736,18 @@ tokio = { path = "../tokio" }
         let Outcome::Violations(report) = outcome else {
             panic!("expected a submodule async-exposure violation, got {outcome:?}");
         };
-        assert!(
-            report.violations.iter().any(|violation| {
-                let id = violation.id();
-                id.rule == "must not expose async fn"
-            }),
-            "expected the async-exposure boundary to fire inside a submodule: {report:?}"
+        assert_violation(
+            &report,
+            "crate",
+            ASYNC_RULE,
+            ASYNC_FACT,
+            "async-free-function",
+            &[
+                ("module", "crate::inner"),
+                ("name", "leak"),
+                ("owner", "crate::inner"),
+                ("owner_kind", "module"),
+            ],
         );
     }
 
@@ -650,19 +765,46 @@ tokio = { path = "../tokio" }
         );
     }
 
-    /// Build a minimal one-crate workspace (`shaahid-contract`, the semantic boundary's
-    /// target) and run the semantic bundle against it. The crate is always present: a
-    /// missing target makes `check_all` return `Outcome::ConstitutionError`, not a
-    /// silent skip, so a firing fixture differs from a clean one only in the leak.
+    fn governance_test() -> GovernanceTest {
+        GovernanceTest::for_constitution(constitution())
+            .with_manifest_dir(Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."))
+    }
+
+    fn assert_violation(
+        report: &Report,
+        target: &str,
+        rule_type: &str,
+        fact_type: &str,
+        fact_shape: &str,
+        fact_fields: &[(&str, &str)],
+    ) {
+        assert!(
+            report.violations.iter().any(|violation| {
+                violation.target() == target
+                    && violation.rule_key().rule_type() == rule_type
+                    && violation.fact().fact_type() == fact_type
+                    && violation.fact().shape() == fact_shape
+                    && violation.fact().fields().collect::<Vec<_>>() == fact_fields
+            }),
+            "expected structured violation target={target:?}, rule={rule_type:?}, \
+             fact={fact_type:?}/{fact_shape:?} fields={fact_fields:?}; report: {report:?}"
+        );
+    }
+
+    /// Build a minimal governed workspace and run the unified Constitution against it.
+    /// A firing fixture differs from a clean one only in the contract source.
     fn semantic_reaction_outcome(name: &str, contract_source: &str) -> Outcome {
         let workspace = TempWorkspace::new(name);
         workspace.write_package_with_source("shaahid-contract", "", contract_source);
-        workspace.write_root_manifest_members(&["shaahid-contract"]);
+        workspace.write_package("shaahid-governance", "");
+        workspace.write_facade();
+        workspace.write_root_manifest_members(&[
+            "shaahid",
+            "shaahid-contract",
+            "shaahid-governance",
+        ]);
 
-        tianheng::check_all(
-            constitution().semantic_boundaries(),
-            &workspace.path.join("Cargo.toml"),
-        )
+        check_constitution(&constitution(), &workspace.path.join("Cargo.toml"))
     }
 
     struct TempWorkspace {
