@@ -11,12 +11,19 @@ downstream consumer needs to witness a stream of deeds — build a `Fingerprint`
 `Deed`, call `witness`, and read the resulting `Outcome` (its `Attestation` and any
 `Contradiction`) — drawing them from `shaahid-contract`. Because all of
 `shaahid-contract`'s public API is compose-level (there is no advanced kernel to
-withhold), the facade SHALL re-export it in full. The facade SHALL depend only on
-`shaahid-contract`.
+withhold), the facade SHALL re-export it in full. This completeness SHALL be
+**structural**, not hand-maintained: the facade SHALL re-export the whole
+`shaahid-contract` public surface such that a public item added to the core is
+re-exported automatically, and no core public item can be silently withheld by an
+out-of-sync re-export list. The facade SHALL depend only on `shaahid-contract`.
 
 #### Scenario: Facade re-exports the public surface
 - **WHEN** a downstream consumer depends only on `shaahid`
 - **THEN** it can name `Fingerprint`, `Deed`, `Attestation`, `Contradiction`, and `Outcome`, and call `witness`, without depending on `shaahid-contract` directly
+
+#### Scenario: A new core public item is re-exported without a facade edit
+- **WHEN** a new public item is added to `shaahid-contract`'s public API
+- **THEN** it is reachable through `shaahid` without any edit to the facade's re-export declaration, so the facade's completeness cannot silently regress
 
 #### Scenario: Facade depends only on the core
 - **WHEN** `cargo run -p shaahid-governance -- check --manifest-path Cargo.toml` runs
