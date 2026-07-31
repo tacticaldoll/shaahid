@@ -6,7 +6,7 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-_0.1.0 is being prepared; it has not yet been published to crates.io._
+## [0.1.0] - 2026-07-14
 
 ### Added
 
