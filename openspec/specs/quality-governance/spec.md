@@ -3,9 +3,10 @@
 ## Purpose
 The executable-governance contract for Shaahid: the Tianheng constitution and prose
 gates that enforce the architecture — crate dependency boundaries, the core's sans-I/O
-purity, workspace coverage, and active-prose presence — so the boundaries the prose
-claims are gated, not merely asserted. The one honest exception (the no-semantic-judgment
-invariant is not statically expressible) is recorded rather than papered over.
+purity, the facade's re-export purity, workspace coverage, and active-prose presence — so
+the boundaries the prose claims are gated, not merely asserted. The one honest exception
+(the no-semantic-judgment invariant is not statically expressible) is recorded rather
+than papered over.
 
 ## Requirements
 ### Requirement: Executable Constitution
@@ -24,10 +25,15 @@ it judges.
 
 ### Requirement: Dependency Boundaries Are Enforced
 The constitution SHALL restrict each crate's dependencies: `shaahid-contract` to no
-workspace or framework crate, and `shaahid-governance` to `tianheng` and `guibiao`.
+workspace or framework crate, `shaahid-governance` to `tianheng` and `guibiao`, and the
+`shaahid` facade to `shaahid-contract` alone.
 
 #### Scenario: An unapproved core dependency fails the gate
 - **WHEN** `shaahid-contract` gains a dependency outside its allowed set
+- **THEN** the constitution reports a dependency-boundary violation
+
+#### Scenario: An unapproved facade dependency fails the gate
+- **WHEN** the `shaahid` facade gains a dependency other than `shaahid-contract`
 - **THEN** the constitution reports a dependency-boundary violation
 
 ### Requirement: Sans-I/O Purity Is Enforced
@@ -43,6 +49,28 @@ no `std::io`/`fs`/`net`/`process`, read no ambient clock, and expose no `async f
 #### Scenario: An I/O call in the core fails the gate
 - **WHEN** `shaahid-contract` calls into `std::fs`
 - **THEN** the no-I/O boundary reports a violation
+
+### Requirement: The Facade Is A Pure Re-Export Surface
+The constitution SHALL enforce that the `shaahid` facade library holds only re-exports,
+crate attributes, and documentation, so the curated entrypoint cannot accrete logic. The
+check SHALL scan the facade source tree and SHALL NOT pass vacuously: a facade source
+tree that is missing or unreadable SHALL fail the gate rather than scan zero files and
+pass. Because `shaahid-governance` may depend only on governance-family tooling, the scan
+SHALL be a brace-depth line heuristic rather than a full parser; the Definition of Done's
+`cargo fmt --all --check` backstops the one gap where a logic item is co-located on a
+re-export line.
+
+#### Scenario: A logic item in the facade fails the gate
+- **WHEN** the facade library defines an item other than a re-export at brace-depth zero
+- **THEN** the re-exports-only scan reports a violation naming the file and line
+
+#### Scenario: A missing facade source tree fails loudly
+- **WHEN** the re-exports-only scan finds no facade source files
+- **THEN** it fails the gate rather than passing on an empty scan
+
+#### Scenario: A clean facade passes
+- **WHEN** the facade library contains only re-exports, attributes, and comments
+- **THEN** the re-exports-only scan reports no violation
 
 ### Requirement: Workspace Coverage
 Every workspace crate SHALL be covered by a dependency boundary, so no crate is
@@ -80,29 +108,4 @@ divergent subset.
 #### Scenario: The Definition of Done is stated once
 - **WHEN** the Definition of Done is documented
 - **THEN** `AGENTS.md` holds the complete gate list and other docs point to it
-
-### Requirement: Composition Is Demonstrated Executably
-The workspace SHALL carry an executable example that composes the adjudication contract
-end-to-end over the public API, so composability is an enforced, non-regressing property
-rather than a claim. The example SHALL consume only the public API, hold its witnessed
-ledger in the consumer rather than the core, and exercise four trajectories — a fresh
-`Create`, an idempotent `Attach`, a `DriftedFingerprint` contradiction, and a `SplitSeal`
-contradiction — disposing of each `Outcome` (record / deduplicate / quarantine) in its own
-loop body. It SHALL run clean under the Definition of Done.
-
-#### Scenario: The example composes end-to-end via the public API
-- **WHEN** the example is run
-- **THEN** it witnesses a stream of deeds against a consumer-held ledger through the public API and disposes of each outcome without reaching into crate internals
-
-#### Scenario: The four trajectories are exercised
-- **WHEN** the example runs its stub domain
-- **THEN** it drives a fresh create, an idempotent attach, a drifted-fingerprint contradiction, and a split-seal contradiction within one run
-
-#### Scenario: Disposition is the consumer's, not the core's
-- **WHEN** an outcome carries a contradiction
-- **THEN** the consumer quarantines the deed in its own loop body, and the core neither admits, records, nor responds to the deed
-
-#### Scenario: A broken composition fails the gate
-- **WHEN** the example fails to compose or to reach its expected ledger state
-- **THEN** running it under the Definition of Done fails rather than passing silently
 
