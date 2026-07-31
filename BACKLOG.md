@@ -8,11 +8,13 @@ lives in `openspec/specs/`; active proposed truth lives in `openspec/changes/`.
 
 - The **initial project shape** is established: vision and non-goals (`PROJECT.md`),
   operating protocol and axioms (`AGENTS.md`), witness domain language
-  (`docs/domain-language.md`), executable governance (`shaahid-governance`), and a
-  compiling crate skeleton (`shaahid-contract`).
-- The adjudication **core is not yet implemented**. Its intended contract lives in
-  `openspec/specs/`; implementation follows in later spec-driven changes,
-  deliberately, because the design still has open questions (below).
+  (`docs/domain-language.md`), executable governance (`shaahid-governance`), and the
+  crate layout (`shaahid-contract` + `shaahid-governance`) — since grown, per the next
+  entry, into the shipped witness core.
+- The witness core is **shipped**: `witness` adjudicates create-or-attach by `Seal`
+  equality and detects structural contradictions, returning an `Outcome`. Its contract
+  lives in `openspec/specs/` (`adjudication-contract`). Remaining open questions are
+  below.
 
 ## Workspace Composition
 
@@ -51,19 +53,6 @@ Recorded so the repo can drive its own development; none is decided here. Discip
 keep meaning domain-supplied; the core only adjudicates or detects mechanically, never
 compares meanings. Do not freeze a user-obligation trait ahead of its first consumer.
 
-- **Attestation shape.** `Create` vs `Attach` is the minimum; what does `Attach`
-  return — a handle to the already-witnessed `Deed`, its `Attestation`, nothing? Keep
-  it a small closed enum, not a DSL. Not yet designed.
-- **Fingerprint ownership.** Does the core *receive* a domain-computed `Fingerprint`
-  (keeping `shaahid-contract` dependency-free) or *compute* it with a pure hasher
-  (mechanical, but a dependency)? Hashing is pure and sans-I/O, so either is
-  axiom-safe; leaning toward domain-supplied to keep the core dep-free. Open.
-- **Contradiction taxonomy and report.** The two mechanical anomalies (drifted
-  `Fingerprint`, split `Seal`) plus the shape of the report (what it carries, how it
-  is surfaced without the core owning a response). Not yet designed.
-- **Ledger state model.** Whether the core is purely functional (given the witnessed
-  set and a `Deed`, return an `Attestation`) or tracks `Ledger` state across witnesses,
-  and if the latter, where that state lives without pulling I/O into the core.
 - **The unenforceable purity invariant.** "The core makes no semantic judgment" is
   not statically expressible — semantic comparison has no syntactic marker, so Tianheng
   cannot bite it the way it bites no-I/O or no-async. It stays review- and
@@ -72,7 +61,10 @@ compares meanings. Do not freeze a user-obligation trait ahead of its first cons
 - **Async variant.** Deferred until a real driver forces it; the sans-I/O core is
   agnostic to sync/async at the edge.
 
-## Recorded Reconsiderations (inherited discipline)
+## Recorded Reconsiderations
+
+Inherited discipline first, then this project's own resolved design decisions.
+
 
 - **No architecture-decision-record files.** Decision provenance lives in git commit
   bodies and pull requests; reconsiderations live here; the living docs are the single
@@ -86,10 +78,29 @@ compares meanings. Do not freeze a user-obligation trait ahead of its first cons
   change's closure a distinct gate before its pull request.
 - **Definition of Done is single-sourced in `AGENTS.md`.** `README.md` and
   `docs/development-flow.md` point to it rather than restating a divergent subset.
+- **Attestation shape — resolved.** A closed two-variant enum `Attestation<Seal>`:
+  `Create` (the `Seal` is new) or `Attach(Seal)` (already witnessed — carries the
+  presented `Seal` by value, nothing else). Deliberately **not** `#[non_exhaustive]`:
+  the verdict space is finite by design, so a new outcome should force a deliberate
+  breaking change rather than silently widen the surface.
+- **Fingerprint ownership — resolved: core-owned bytes, domain-produced.** The domain
+  produces the content-hash bytes; the core owns the `Fingerprint` type
+  (`Fingerprint(Box<[u8]>)`) and compares them byte-for-byte. This keeps
+  `shaahid-contract` dependency-free *without* the core computing the hash — a `Seal`
+  is the domain's meaning, a `Fingerprint`'s bytes are the core's mechanism.
+- **Contradiction taxonomy and report — resolved.** Two mechanical anomalies:
+  `Contradiction::DriftedFingerprint { witnessed_index }` and
+  `Contradiction::SplitSeal { witnessed_index }`, each naming the conflicting witnessed
+  `Deed` by index. `witness` returns an `Outcome { attestation, contradictions }` where
+  `contradictions` is a `Vec` — the two axes are orthogonal; the core owns no response.
+- **Ledger state model — resolved: purely functional.** `witness(witnessed:
+  &[Deed<Seal>], incoming: Deed<Seal>) -> Outcome<Seal>` is a pure function of one
+  call's inputs, holds no cross-witness state, and compares incoming-versus-each-
+  witnessed (it does not audit the witnessed ledger against itself). Durable `Ledger`
+  persistence stays downstream.
 
 ## Explicitly Deferred
 
-- Implementation of the adjudication and contradiction detection (spec-driven, later).
 - Any semantic comparison inside the core (never — meaning is the domain's).
 - The durable `Ledger` and any `Contradiction` response policy (downstream).
 - An async core variant (until a driver forces it).
