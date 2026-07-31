@@ -93,7 +93,7 @@ meaning-guessing deduplicator.
 This repository uses OpenSpec. The lifecycle is:
 
 ```text
-explore -> propose -> apply -> sync
+explore -> propose -> apply -> sync -> archive
 ```
 
 1. **Explore**: investigate and shape intent. Do not write feature code outside a
@@ -102,9 +102,14 @@ explore -> propose -> apply -> sync
    Commit as `docs(<change>): propose <summary>`.
 3. **Apply**: implement against the active delta specs. Check off tasks only after
    verification. Commit coherent compiling milestones as `feat(...)` or `fix(...)`.
-4. **Sync**: merge verified delta specs into `openspec/specs/` (agent-driven), then
-   remove the completed change directory; its content now lives in `openspec/specs/`
-   and git history. There is no archive. Commit as `docs(specs): sync <change>`.
+4. **Sync**: merge verified delta specs into `openspec/specs/` (agent-driven). The
+   change directory stays in place — the change remains active for verification. Commit
+   as `docs(specs): sync <change>`.
+5. **Archive**: once the synced change is verified, remove the completed change
+   directory as a distinct gate (not folded into sync); its deliberation lives in git
+   history. Commit as `chore(<change>): archive <change>`. No `openspec/changes/archive/`
+   folder is created — archive means deletion; `openspec archive` (which recreates that
+   folder) is not used.
 
 ## Commit And Integration Governance
 
