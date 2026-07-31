@@ -4,7 +4,33 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.1] - 2026-07-18
+
+An identity-and-governance release. No change to the public API surface: the same items
+are exported and every behaviour is unchanged. The work sharpens Shaahid's stated
+positioning and makes the facade's completeness invariant structural.
+
+### Changed
+
+- **The facade re-exports the core surface by glob** (`pub use shaahid_contract::*`), so
+  "the facade withholds nothing" is enforced by the compiler rather than by a
+  hand-maintained name list — a new `shaahid-contract` public item now appears
+  automatically and none can be silently withheld. The exported surface is identical to
+  before (`Fingerprint`, `Deed`, `Attestation`, `Contradiction`, `Outcome`, `witness`).
+
+### Documentation
+
+- **Self-positioning reclaimed.** The governing docs (`AGENTS.md`, `PROJECT.md`,
+  `README.md`, `docs/domain-language.md`) and the crates' rustdoc now justify each non-goal
+  from the pattern's own nature — a sans-I/O adjudication that owns no durable state cannot
+  persist a `Ledger`; an alarm that makes no judgment cannot own a response — rather than by
+  deferring to a downstream "consumer". The service-word "consumer" gives way to composition
+  language; "downstream" is kept only as architectural direction.
+- **Contradiction taxonomy proven exhaustive.** `BACKLOG.md` records that
+  `DriftedFingerprint` and `SplitSeal` exhaust the mechanically-detectable, currently-silent
+  structural facts a witness can raise: the per-witness `Seal`/`Fingerprint` grid has no
+  third contradiction cell, and the residual silent-failure surface is irreducible without
+  judging meaning — the contradiction layer is the complete theorem of the vision.
 
 ## [0.1.0] - 2026-07-14
 
@@ -39,5 +65,5 @@ All notable changes to this project are documented here. The format follows
   observable alarm, not a judgment; the durable `Ledger` and any contradiction response are
   downstream concerns. See `BACKLOG.md`.
 
-[Unreleased]: https://github.com/tacticaldoll/shaahid/compare/v0.1.0...HEAD
+[0.1.1]: https://github.com/tacticaldoll/shaahid/releases/tag/v0.1.1
 [0.1.0]: https://github.com/tacticaldoll/shaahid/releases/tag/v0.1.0
