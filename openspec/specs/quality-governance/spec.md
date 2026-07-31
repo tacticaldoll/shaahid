@@ -173,3 +173,22 @@ divergent subset.
 #### Scenario: The Definition of Done is stated once
 - **WHEN** the Definition of Done is documented
 - **THEN** `AGENTS.md` holds the complete gate list and other docs point to it
+
+### Requirement: No-Std Portability Is A Required Gate
+The authoritative Definition of Done and CI SHALL include the MSRV-pinned
+`thumbv7em-none-eabi` compile reaction for both published crates. CI SHALL install the
+target through its Rust 1.88 toolchain setup. Contributor documentation SHALL state
+the exact one-time local target-install prerequisite without duplicating or weakening
+the authoritative gate list.
+
+#### Scenario: Definition of Done includes the portability reaction
+- **WHEN** the complete Definition of Done is read from `AGENTS.md`
+- **THEN** it includes `cargo +1.88 check -p shaahid-contract -p shaahid --target thumbv7em-none-eabi`
+
+#### Scenario: CI provisions and runs the representative target
+- **WHEN** CI evaluates a push or pull request
+- **THEN** its Rust 1.88 job installs `thumbv7em-none-eabi` and runs the same portability reaction
+
+#### Scenario: Other documentation remains single-sourced
+- **WHEN** development documentation explains how to verify the workspace
+- **THEN** it points to `AGENTS.md` for the complete gate list and may state only the target-install prerequisite outside that list

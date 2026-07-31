@@ -24,9 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: install and select the declared MSRV toolchain
-        uses: dtolnay/rust-toolchain@1.88
+        run: rustup toolchain install 1.88 --profile minimal --target thumbv7em-none-eabi
       - name: workspace builds on the declared MSRV
         run: cargo +1.88 build --workspace
+      - name: published crates compile with no-std plus alloc
+        run: cargo +1.88 check -p shaahid-contract -p shaahid --target thumbv7em-none-eabi
 
   supply-chain:
     name: Supply chain (cargo-deny)

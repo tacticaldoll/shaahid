@@ -10,6 +10,9 @@
 //! It carries no logic of its own: every item here is a re-export. Shaahid's whole
 //! public surface is compose-level, so the facade withholds nothing — there is no
 //! advanced kernel to reach for through [`shaahid_contract`] directly.
+//! Both this facade and the contract are unconditional `no_std + alloc` libraries.
+//! The composing system supplies the allocator; Shaahid provides no runtime or
+//! platform adapter.
 //!
 //! # The contract
 //!
@@ -45,6 +48,7 @@
 //! assert!(repeat.contradictions.is_empty());
 //! ```
 
+#![no_std]
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
