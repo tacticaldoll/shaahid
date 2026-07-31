@@ -4,6 +4,32 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-07-30
+
+A portability-and-governance release. No change to the public API surface: `Box` and
+`Vec` in the exported types now resolve through `alloc` rather than an implicit `std`
+import, but these are the identical items `std` re-exports — no consumer-visible type,
+signature, or behavior changes, and no `Cargo.toml` feature was added or removed.
+
+### Added
+
+- **Unconditional `no_std + alloc` portability**: `shaahid-contract` and `shaahid` compile
+  without `std` on any target with an allocator, verified by an MSRV-pinned
+  `thumbv7em-none-eabi` compile check in CI and the Definition of Done. Not a
+  no-allocation claim — `Fingerprint` keeps its owned boxed bytes, `Outcome` keeps its
+  contradiction vector, and the composing system supplies the allocator. Allocators,
+  runtimes, target adapters, async, storage, serialization, and facade topology remain
+  outside this capability.
+
+### Changed
+
+- **Governance upgraded to Tianheng 0.3.0**, adopting its composed capabilities: one
+  Constitution feeds the runner, workspace-coverage assertion, structured negative
+  proofs, and a freshness-gated `AGENTS.shaahid-law.md` projection. The clock-free and
+  synchronous-API laws are now expressed through `SansIoPure`, with the explicit
+  `std::io`/`fs`/`net`/`process` boundaries retained. No semantic, runtime, or API policy
+  was added; the published crates and their surface are unchanged.
+
 ## [0.1.1] - 2026-07-18
 
 An identity-and-governance release. No change to the public API surface: the same items
@@ -65,5 +91,6 @@ positioning and makes the facade's completeness invariant structural.
   observable alarm, not a judgment; the durable `Ledger` and any contradiction response are
   downstream concerns. See `BACKLOG.md`.
 
+[0.1.2]: https://github.com/tacticaldoll/shaahid/releases/tag/v0.1.2
 [0.1.1]: https://github.com/tacticaldoll/shaahid/releases/tag/v0.1.1
 [0.1.0]: https://github.com/tacticaldoll/shaahid/releases/tag/v0.1.0
