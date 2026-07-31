@@ -107,6 +107,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "shaahid"
+version = "0.1.0"
+dependencies = [
+ "shaahid-contract",
+]
+
+[[package]]
 name = "shaahid-contract"
 version = "0.1.0"
 
