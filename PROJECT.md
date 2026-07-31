@@ -27,8 +27,8 @@ attach:
 
 - domain-supplied semantic identity (`Seal`)
 - mechanical content identity (`Fingerprint`) the core compares byte-wise
-- downstream durability of the `Ledger`, and any policy on a detected contradiction
-  — consumer concerns, not Shaahid
+- the durable `Ledger`, and any policy on a detected contradiction — composed around the
+  pattern, outside its shape, never owned by it
 
 ## Core Contract
 
@@ -67,11 +67,12 @@ Elegance in Shaahid is technical restraint:
 
 Shaahid core is not:
 
-- a durable store (the `Ledger`'s persistence is a consumer concern)
+- a durable store (a pure adjudication that owns no state cannot persist the `Ledger`)
 - a deduplicator that guesses identity (identity is domain-supplied, never inferred)
 - a semantic-comparison engine (it never decides what two `Deed`s mean)
 - a workflow or orchestration engine
-- a policy owner for contradictions (it raises the alarm; the response is downstream)
+- a policy owner for contradictions (it raises the alarm; owning the response lies
+  outside the pattern)
 
 ## References
 

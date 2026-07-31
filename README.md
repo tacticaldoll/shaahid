@@ -22,7 +22,7 @@ contradictions (a drifted `Fingerprint` under a repeated `Seal`, a split `Seal` 
 `Fingerprint`) — and the `Deed`/`Seal`/`Fingerprint`/`Attestation`/`Contradiction` vocabulary, its
 architectural axioms, and executable governance; the meaning of "the same work" (the `Seal`) is the
 domain's to supply. It does **not** own a durable `Ledger`, a contradiction-response policy, or an
-async edge — those are deferred (see `BACKLOG.md`) or are downstream concerns.
+async edge — those are deferred (see `BACKLOG.md`) or lie outside the pattern's shape.
 
 Depend on the curated **facade** (`shaahid`) — the recommended single entrypoint, which re-exports
 the public surface and carries a runnable witness doctest; the isolated core (`shaahid-contract`)
@@ -41,8 +41,8 @@ The domain supplies (meaning)              Shaahid owns (mechanism, no meaning)
                                               (never judging whether a Seal is "right")
 ```
 
-The `Ledger`'s durability and any policy on a detected contradiction are downstream
-consumer concerns, not the core.
+The `Ledger`'s durability and any policy on a detected contradiction are composed around
+the pattern, outside its shape — never owned by the core.
 
 ## Why sans-I/O and no semantic judgment
 
