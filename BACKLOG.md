@@ -20,7 +20,7 @@ lives in `openspec/specs/`; active proposed truth lives in `openspec/changes/`.
 
 The workspace stays thin. It owns the adjudication contract (`shaahid-contract`) and
 its governance gate (`shaahid-governance`, unpublished). The durable `Ledger` and any
-policy on a `Contradiction` are **downstream consumer concerns** and live outside this
+policy on a `Contradiction` **lie outside the pattern's shape** and live outside this
 workspace. Adding a workspace crate requires a justified Tianheng boundary or the
 coverage gate fails.
 
@@ -51,7 +51,7 @@ coverage gate fails.
 
 Recorded so the repo can drive its own development; none is decided here. Discipline:
 keep meaning domain-supplied; the core only adjudicates or detects mechanically, never
-compares meanings. Do not freeze a user-obligation trait ahead of its first consumer.
+compares meanings. Do not freeze a user-obligation trait ahead of its first composer.
 
 - **The unenforceable purity invariant.** "The core makes no semantic judgment" is
   not statically expressible — semantic comparison has no syntactic marker, so Tianheng
@@ -60,12 +60,31 @@ compares meanings. Do not freeze a user-obligation trait ahead of its first cons
   does not enforce the invariant.
 - **Async variant.** Deferred until a real driver forces it; the sans-I/O core is
   agnostic to sync/async at the edge.
+- **Facade as composition-ergonomics artifact.** Does a pattern-product need the `shaahid`
+  facade crate, or is it a composition convenience the pattern itself does not require?
+  Deferred; a structural question with a wide blast radius, not decided here.
+- **Spec framing residue.** `public-facade`'s requirement prose still projects the
+  service-`consumer` frame retired from the governing docs. Reconcile it the next time that
+  spec changes for a real reason, rather than through a behavior-inert delta now.
 
 ## Recorded Reconsiderations
 
 Inherited discipline first, then this project's own resolved design decisions.
 
 
+- **Self-positioning reclaimed — resolved.** The governing prose defined the product
+  consumer-relative — justifying each non-goal by a downstream *consumer* rather than by
+  the pattern's own shape — the consumer-driven frame leaking into governance. Re-anchored
+  across `AGENTS.md`, `PROJECT.md`, `README.md`, and `docs/domain-language.md`: each
+  non-goal is now self-justified from the pattern's nature (a sans-I/O adjudication owning
+  no state cannot persist a `Ledger`; an alarm that makes no judgment cannot own a
+  response), and the service-word "consumer" gives way to composition language while
+  "downstream" is kept only as architectural direction. Boundaries did not move; only their
+  justification did. Done as a governing-docs `docs:` change, **not** an OpenSpec change —
+  it alters no requirement or behavior, and provenance lives in git plus this file, not a
+  separate record class. Scope held: the historical entries below keep their original
+  wording, and `public-facade`'s spec framing was left to a future spec change (see Open
+  Design Questions).
 - **No architecture-decision-record files.** Decision provenance lives in git commit
   bodies and pull requests; reconsiderations live here; the living docs are the single
   source of truth for current state. The starter's `docs/adr/` was removed on birth.
@@ -144,7 +163,7 @@ can reopen it. Filing them under one word ("deferred") hides that most of these 
 
 ### Rejected — never core
 
-Refused at the core-identity level. No future consumer can overturn these short of
+Refused at the core-identity level. No future composer can overturn these short of
 redefining the product; nothing about them is deferred.
 
 - Any semantic comparison inside the core — meaning is the domain's.
@@ -154,7 +173,7 @@ redefining the product; nothing about them is deferred.
 
 ### Downstream — decided, not core
 
-The core's answer is settled — *not here, in the driver or consumer* — and cannot be
+The core's answer is settled — *not here, in the driver or composer* — and cannot be
 overturned; only a downstream demonstration is still unbuilt.
 
 - The durable `Ledger` and any `Contradiction` response policy (reject / quarantine /
@@ -164,7 +183,7 @@ overturned; only a downstream demonstration is still unbuilt.
 ### Deferred — disposition open
 
 May or may not enter the core; even its ownership is undecided. Held open only by refusing
-to freeze — the shape is not fixed until a real consumer proves it. A real consumer
+to freeze — the shape is not fixed until a real composer proves it. A real composer
 appearing is what reopens it; both the shape and whether it belongs in the core are deferred.
 
 - An async core variant, until a real driver forces it.

@@ -21,8 +21,8 @@ Deed (Seal + Fingerprint) -> Witness -> Attestation (Create | Attach)
   encodes content, not meaning.
 - **Attestation** — the verdict for a witnessed `Deed`: `Create` (the `Seal` is new)
   or `Attach` (the `Seal` was already witnessed, so this is the same work).
-- **Ledger** — the record of witnessed `Seal`s. Its durable persistence is a
-  downstream concern, not the core.
+- **Ledger** — the record of witnessed `Seal`s. Its durable persistence is composed
+  around the pattern, not owned by the core.
 - **Witness** — the adjudicator role (the pure `witness` function) that produces an
   `Outcome`.
 - **Contradiction** — a structural anomaly the core can detect mechanically: the same
@@ -50,6 +50,7 @@ cannot eliminate, that silent-failure surface. See `PROJECT.md` and `BACKLOG.md`
 ## Out of scope for the core
 
 The durable persistence of the `Ledger`, and any policy on what to do when a
-`Contradiction` is raised (reject, quarantine, escalate), are **downstream consumer
-concerns**, not the adjudication core. Shaahid attests and alarms; the response is
-composed outside `shaahid-contract`.
+`Contradiction` is raised (reject, quarantine, escalate), **lie outside the pattern's
+shape**: a sans-I/O adjudication that owns no durable state cannot persist the `Ledger`,
+and an alarm that makes no judgment cannot own a response. Shaahid attests and alarms;
+whatever composes it supplies the rest.
