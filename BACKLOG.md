@@ -112,12 +112,62 @@ Inherited discipline first, then this project's own resolved design decisions.
   choice, not a core imposition — the core still bounds `Seal` by `Eq` alone. Disposition
   (including quarantine winning over an `Attach`-with-drift) is edge policy in the
   consumer's loop body; the core admits and responds to nothing.
+- **`Fingerprint` name — kept (0.1.0 freeze).** The name evokes a content hash and so
+  invites the core to grow hashing responsibilities (compute the hash, tag an algorithm,
+  enforce a length). Renaming to a lower-gravity term before the freeze was considered and
+  rejected: the risk is already contained (the contract forbids a hashing dependency and
+  mandates domain-produced bytes), `Fingerprint` is canonical witness vocabulary with a
+  broad rename cost, and the semver freeze itself turns any future "the core hashes" into a
+  breaking change. The residual pull is closed by stating the non-goals explicitly (no
+  hash, no algorithm tag, no length) rather than by a rename. See the `freeze-public-surface`
+  change and `adjudication-contract`.
+- **`Outcome` name and shape — kept, no accessors.** `Outcome` is a generic container name,
+  the kind that attracts convenience accessors. Renaming it, and adding
+  `is_clean`/`has_contradictions`, were both considered and rejected: the accessor question
+  was already settled just above (a single `contradictions` collection has no compound-read
+  trap, and the `attestation` match is unavoidable), and a rename disturbs a settled surface
+  for little gain. The generic-name accretion risk is held by the facade's re-export-only
+  governance plus this record.
+- **`Attestation` and `Contradiction` exhaustiveness — kept closed.** Both stay closed
+  enums that are not `#[non_exhaustive]`, so a new variant is a deliberate breaking change.
+  Previously only `Attestation` documented this; `Contradiction` — the axis likelier to
+  grow — now carries the same commitment in its doc and in `adjudication-contract`. Marking
+  `Contradiction` `#[non_exhaustive]` to allow additive anomaly variants was rejected: it
+  would let "what counts as a contradiction" widen silently, the exact ratchet the design
+  resists.
 
-## Explicitly Deferred
+## Dispositions
 
-- Any semantic comparison inside the core (never — meaning is the domain's).
-- The durable `Ledger` and any `Contradiction` response policy (downstream).
-- An async core variant (until a driver forces it).
+Not-now comes in three kinds, kept separate because each says something different about what
+can reopen it. Filing them under one word ("deferred") hides that most of these are in fact
+*settled*.
+
+### Rejected — never core
+
+Refused at the core-identity level. No future consumer can overturn these short of
+redefining the product; nothing about them is deferred.
+
+- Any semantic comparison inside the core — meaning is the domain's.
+- The core computing a `Fingerprint` hash, tagging an algorithm, or enforcing a length.
+- Convenience accessors on `Outcome` (`is_clean`/`has_contradictions`).
+- Widening `Attestation` or `Contradiction` behind `#[non_exhaustive]`.
+
+### Downstream — decided, not core
+
+The core's answer is settled — *not here, in the driver or consumer* — and cannot be
+overturned; only a downstream demonstration is still unbuilt.
+
+- The durable `Ledger` and any `Contradiction` response policy (reject / quarantine /
+  escalate). The position is fixed downstream; what is pending is only a downstream example,
+  not a core decision.
+
+### Deferred — disposition open
+
+May or may not enter the core; even its ownership is undecided. Held open only by refusing
+to freeze — the shape is not fixed until a real consumer proves it. A real consumer
+appearing is what reopens it; both the shape and whether it belongs in the core are deferred.
+
+- An async core variant, until a real driver forces it.
 
 ## Prioritization
 

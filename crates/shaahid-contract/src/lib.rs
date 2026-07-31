@@ -41,6 +41,13 @@
 /// representation and compares them byte-for-byte. Unlike a `Seal`, a `Fingerprint` is
 /// not a domain type the core carries opaquely — the core's whole business with a
 /// `Fingerprint` is to compare its bytes, so it owns them. Immutable once built.
+///
+/// **Non-goals.** The name evokes a content hash, but the core never becomes the hasher.
+/// It computes no hash, stores no algorithm identifier alongside the bytes, and enforces
+/// no length — choosing an algorithm and a length, and producing the bytes, is the
+/// domain's. The core owns only the canonical representation and the byte-for-byte
+/// comparison; `Fingerprint`s of different lengths compare as unequal, and none is
+/// rejected or normalized for its length.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Fingerprint(Box<[u8]>);
 
@@ -100,6 +107,12 @@ pub enum Attestation<Seal> {
 /// [`Deed`] by its index in the witnessed slice, so it imposes no `Clone` or lifetime on
 /// the identity types. Each variant refers to exactly one witnessed `Deed` and is
 /// meaningful only relative to the [`witness`] call that produced it.
+///
+/// A closed enum, deliberately **not** `#[non_exhaustive]` — like [`Attestation`], and
+/// with more reason: `Contradiction` is the axis likelier to grow as new structural
+/// anomalies are found. Keeping it closed forces any new anomaly kind through a
+/// deliberate breaking change, never a silent, additive widening of what counts as a
+/// contradiction.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Contradiction {
     /// A witnessed `Deed` shares the incoming `Seal` but carries a different `Fingerprint`
@@ -341,5 +354,33 @@ mod tests {
             witness(&ledger, Deed::new(UnorderedSeal(2), fp(b"b"))).attestation,
             Attestation::Attach(UnorderedSeal(2))
         );
+    }
+
+    #[test]
+    fn fingerprints_of_differing_lengths_compare_unequal() {
+        // The core enforces no length policy: differing-length fingerprints simply
+        // compare unequal, and neither is rejected or normalized for its length.
+        let short = Fingerprint::new(vec![0x01, 0x02]);
+        let long = Fingerprint::new(vec![0x01, 0x02, 0x03]);
+        assert_ne!(short, long);
+        assert_eq!(short.as_bytes().len(), 2);
+        assert_eq!(long.as_bytes().len(), 3);
+    }
+
+    #[test]
+    fn attestation_and_contradiction_match_exhaustively_without_wildcard() {
+        // Pins the not-`#[non_exhaustive]` contract: these exhaustive matches carry no
+        // wildcard arm, so a future added variant would break them at compile time.
+        let attestation: Attestation<&str> = Attestation::Create;
+        let _ = match attestation {
+            Attestation::Create => "create",
+            Attestation::Attach(_) => "attach",
+        };
+
+        let contradiction = Contradiction::SplitSeal { witnessed_index: 0 };
+        let _ = match contradiction {
+            Contradiction::DriftedFingerprint { .. } => "drift",
+            Contradiction::SplitSeal { .. } => "split",
+        };
     }
 }
