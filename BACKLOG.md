@@ -173,6 +173,23 @@ Inherited discipline first, then this project's own resolved design decisions.
   `Contradiction` `#[non_exhaustive]` to allow additive anomaly variants was rejected: it
   would let "what counts as a contradiction" widen silently, the exact ratchet the design
   resists.
+- **Facade re-export — resolved: glob over a named list.** The facade switched from a
+  hand-maintained `pub use shaahid_contract::{...}` list to `pub use shaahid_contract::*`.
+  The `public-facade` spec already requires the facade to "re-export it in full" and
+  "withhold nothing"; the named list satisfied that only by staying in sync by hand — an
+  unenforced completeness gap, since the re-exports-only tooth checks the facade holds
+  *only* re-exports, not that it holds *all* of them. The glob makes completeness a
+  compiler invariant: a new `shaahid-contract` public item appears automatically, none can
+  be silently withheld. It does not weaken the core's deliberate curation — the deliberate
+  act stays the `pub` in `shaahid-contract` (adding an `Attestation`/`Contradiction`
+  variant is still a breaking change), and `shaahid-contract` is itself published, so a
+  core `pub` is already public API. Keeping the named list for legibility was rejected:
+  rustdoc and the crate-level prose already enumerate the surface. Adding a governance
+  tooth to force the glob was considered and rejected: `shaahid-governance` may use only
+  `tianheng`/`guibiao` (no `syn`), the compiler already enforces completeness, and this
+  record plus the changelog fix the decision. The exported surface is unchanged — the six
+  items (`Fingerprint`, `Deed`, `Attestation`, `Contradiction`, `Outcome`, `witness`) were
+  already the whole surface.
 
 ## Dispositions
 
