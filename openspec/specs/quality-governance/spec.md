@@ -10,45 +10,69 @@ than papered over.
 
 ## Requirements
 ### Requirement: Executable Constitution
-Shaahid SHALL enforce its architecture with an executable Tianheng constitution
+Shaahid SHALL enforce its architecture with one executable Tianheng constitution
 (`shaahid-governance`), so the boundaries prose claims are gated, not merely asserted.
-The gate SHALL depend only on governance-family tooling, never on the workspace graph
-it judges.
+The runner, architecture tests, workspace-coverage check, and generated law projection
+SHALL all consume that same Constitution. The gate SHALL depend directly only on the
+composed `tianheng` shell, never on an individual Tianheng instrument or on a workspace
+crate under judgment.
 
-#### Scenario: The constitution runs clean on the workspace
+#### Scenario: The unified constitution runs clean on the workspace
 - **WHEN** `cargo run -p shaahid-governance -- check --manifest-path Cargo.toml` runs
-- **THEN** it reports no boundary violated for the current workspace
+- **THEN** its unified Tianheng reaction reports no static, semantic, or runtime-coverage violation for the current workspace
 
-#### Scenario: The gate is independent of the graph it judges
-- **WHEN** `shaahid-governance`'s dependencies are read
-- **THEN** they are limited to `tianheng` and `guibiao`, never a crate under judgment
+#### Scenario: The gate is independent of instruments and the judged graph
+- **WHEN** `shaahid-governance`'s normal dependencies are read
+- **THEN** they contain only `tianheng`, never an individual instrument crate or a workspace crate under judgment
 
 ### Requirement: Dependency Boundaries Are Enforced
-The constitution SHALL restrict each crate's dependencies: `shaahid-contract` to no
-workspace or framework crate, `shaahid-governance` to `tianheng` and `guibiao`, and the
-`shaahid` facade to `shaahid-contract` alone.
+The Constitution SHALL restrict every workspace crate's normal, development, and build
+dependency tables independently. `shaahid-contract` SHALL declare no dependency in any
+table. The `shaahid` facade SHALL declare only `shaahid-contract` as a normal
+dependency and no development or build dependency. `shaahid-governance` SHALL declare
+only `tianheng` as a normal dependency and no development or build dependency. These
+authored-table boundaries SHALL complement, not replace, `cargo-deny`'s resolved
+whole-graph supply-chain policy.
 
-#### Scenario: An unapproved core dependency fails the gate
-- **WHEN** `shaahid-contract` gains a dependency outside its allowed set
-- **THEN** the constitution reports a dependency-boundary violation
+#### Scenario: An unapproved normal core dependency fails the gate
+- **WHEN** `shaahid-contract` gains a normal dependency
+- **THEN** the Constitution reports an enforced dependency-boundary violation
+
+#### Scenario: A development dependency cannot bypass core isolation
+- **WHEN** `shaahid-contract` gains a development dependency
+- **THEN** the Constitution reports an enforced dependency-boundary violation
+
+#### Scenario: A build dependency cannot bypass core isolation
+- **WHEN** `shaahid-contract` gains a build dependency
+- **THEN** the Constitution reports an enforced dependency-boundary violation
 
 #### Scenario: An unapproved facade dependency fails the gate
-- **WHEN** the `shaahid` facade gains a dependency other than `shaahid-contract`
-- **THEN** the constitution reports a dependency-boundary violation
+- **WHEN** the `shaahid` facade gains a dependency other than its allowed normal dependency on `shaahid-contract`
+- **THEN** the Constitution reports an enforced dependency-boundary violation for the affected dependency table
+
+#### Scenario: The governance gate knows only the composed shell
+- **WHEN** `shaahid-governance` directly depends on an individual Tianheng instrument such as `guibiao`
+- **THEN** the Constitution reports an enforced dependency-boundary violation
 
 ### Requirement: Sans-I/O Purity Is Enforced
-The constitution SHALL bite the core's sans-I/O purity: `shaahid-contract` SHALL call
-no `std::io`/`fs`/`net`/`process`, read no ambient clock, and expose no `async fn`
-(including submodules). This static tooth complements review and is partial by nature
-(macro-expanded I/O is invisible to a source scan).
+The Constitution SHALL express the core's clock-free and synchronous public-API facts
+as one composed sans-I/O profile over the full `shaahid-contract` module subtree. It
+SHALL separately enforce that the subtree calls no `std::io`, `std::fs`, `std::net`, or
+`std::process` inline symbol path. These static reactions are partial by nature:
+macro-expanded I/O and general effect reachability are not observed, so the executable
+teeth SHALL complement review rather than claim complete effect analysis.
 
-#### Scenario: An exposed async fn in the core fails the gate
-- **WHEN** `shaahid-contract` exposes an `async fn`
-- **THEN** the async-exposure boundary reports a violation
+#### Scenario: An exposed async function in the core fails the profile
+- **WHEN** `shaahid-contract` exposes an `async fn` at the crate root or in a reachable submodule
+- **THEN** the composed sans-I/O profile reports an enforced async-exposure violation
 
-#### Scenario: An I/O call in the core fails the gate
+#### Scenario: An ambient clock read in the core fails the profile
+- **WHEN** `shaahid-contract` calls a path under `std::time` ending in `now`
+- **THEN** the composed sans-I/O profile reports an enforced inline-call violation
+
+#### Scenario: An explicit I/O call in the core fails its boundary
 - **WHEN** `shaahid-contract` calls into `std::fs`
-- **THEN** the no-I/O boundary reports a violation
+- **THEN** the explicit no-I/O boundary reports an enforced violation
 
 ### Requirement: The Facade Is A Pure Re-Export Surface
 The constitution SHALL enforce that the `shaahid` facade library holds only re-exports,
@@ -100,6 +124,47 @@ SHALL be recorded rather than papered over.
 - **WHEN** the governance surface describes what it enforces
 - **THEN** it states that the no-semantic-judgment axiom is review-governed, not a Tianheng tooth
 
+### Requirement: Governance Reactions Have Focused Structured Proofs
+The governance test suite SHALL evaluate the unified Constitution and SHALL prove both
+teeth and precision for each changed law. A violating proof SHALL identify the intended
+reaction by its structured governed target, semantic rule key, and fact identity rather
+than by presentation wording alone. A nearby allowed case SHALL remain clean. Exit class
+2, a warning, a baseline, successful compilation, or projection generation alone SHALL
+NOT count as proof that a boundary reacts.
+
+#### Scenario: A focused violating fixture proves the intended boundary
+- **WHEN** a fixture introduces one governed violation
+- **THEN** the test observes an enforced violation whose structured target, rule key, and fact identify the intended boundary
+
+#### Scenario: A precision fixture stays clean
+- **WHEN** a nearby fixture retains only facts allowed by the same boundary
+- **THEN** the unified Constitution returns a clean outcome
+
+#### Scenario: Custom reactions remain independently proved
+- **WHEN** active prose disappears or facade logic is introduced
+- **THEN** the corresponding Shaahid custom reaction fails even though it is not a Tianheng Constitution boundary
+
+### Requirement: Executable Law Is Projected Into Agent Context
+Shaahid SHALL commit an agent-readable Markdown projection generated from the same
+Constitution used by the governance runner. A test SHALL byte-compare the committed
+artifact with a fresh projection and fail when it is missing, unreadable, or stale;
+explicit `BLESS=1` or `BLESS=true` regeneration SHALL be the only test-supported write
+path. The projection preamble SHALL state that Shaahid's custom active-prose and facade
+source reactions are outside the Tianheng projection, so the artifact does not claim to
+be the entire governance surface.
+
+#### Scenario: A current projection passes
+- **WHEN** the committed agent-law document equals the Constitution's generated Markdown plus its declared preamble
+- **THEN** the projection-freshness test passes without writing the file
+
+#### Scenario: A stale projection fails
+- **WHEN** the Constitution changes without regenerating the committed agent-law document
+- **THEN** the projection-freshness test fails and names the explicit regeneration path
+
+#### Scenario: An agent sees the projection's honest scope
+- **WHEN** an agent follows the repository's documented context order
+- **THEN** it reads the generated Tianheng law after `AGENTS.md` and is told that custom prose and facade-source reactions remain outside that projection
+
 ### Requirement: Definition Of Done Is Single-Sourced
 `AGENTS.md` SHALL state the complete Definition of Done, and other active prose
 (`README.md`, `docs/development-flow.md`) SHALL point to it rather than restate a
@@ -108,4 +173,3 @@ divergent subset.
 #### Scenario: The Definition of Done is stated once
 - **WHEN** the Definition of Done is documented
 - **THEN** `AGENTS.md` holds the complete gate list and other docs point to it
-
