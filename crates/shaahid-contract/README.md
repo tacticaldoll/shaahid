@@ -8,6 +8,10 @@ and makes no semantic judgment of its own: the meaning of "the same work" is the
 domain's, supplied as a `Seal`. It exposes no `async fn`, reads no ambient clock, and
 performs no I/O; a runtime drives it.
 
+The crate is unconditionally `no_std` and uses `alloc` for its existing owned
+`Fingerprint` bytes and contradiction collection. The composing system supplies the
+allocator; Shaahid does not provide one and does not claim allocation-free operation.
+
 0.1.0 ships the witness core: `witness` adjudicates create-or-attach by `Seal`
 equality and detects structural contradictions, returning an `Outcome`, alongside the
 `Deed`/`Seal`/`Fingerprint`/`Attestation`/`Contradiction` vocabulary and the axioms.

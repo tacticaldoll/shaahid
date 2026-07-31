@@ -47,6 +47,9 @@ The behavior that must be protected first:
   — the deliberate cost of purity (see `BACKLOG.md`).
 - **Sans-I/O purity**: the core exposes no `async fn`, reads no ambient clock, and
   performs no I/O. A runtime drives it and supplies the witnessed state at the edge.
+- **`no_std + alloc` portability**: both published crates compile without `std` and
+  keep one API shape. Existing owned fingerprints and contradiction collections use
+  `alloc`; choosing and supplying an allocator remains outside Shaahid.
 - **Governance with teeth**: Tianheng and project specs enforce the boundaries prose
   claims — with the honest exception that "no semantic judgment" is not statically
   expressible (see BACKLOG).

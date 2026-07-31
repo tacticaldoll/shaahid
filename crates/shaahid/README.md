@@ -8,6 +8,10 @@ public surface you need to witness a stream of deeds: the identity types (`Finge
 `Deed`), the witness verdict (`Attestation`, `Contradiction`, `Outcome`), and the
 adjudication itself (`witness`). This is the recommended crate to depend on.
 
+Both this facade and `shaahid-contract` are unconditional `no_std + alloc` libraries
+with the same API in every environment. The composing system supplies the allocator;
+Shaahid provides no allocator, runtime, or platform adapter.
+
 Shaahid owns one mechanism — the witness — and outsources semantic identity to the
 domain: given a `Deed` (a domain-supplied `Seal` paired with a content `Fingerprint`)
 and the witnessed set, `witness` returns a create-or-attach `Attestation` plus any

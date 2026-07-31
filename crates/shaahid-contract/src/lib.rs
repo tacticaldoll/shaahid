@@ -14,7 +14,8 @@
 //!    matches its `Fingerprint` fails silently) is accepted deliberately rather than
 //!    patched by judging meaning.
 //! 2. **Sans-I/O purity.** The core exposes no `async fn`, reads no ambient clock, and
-//!    performs no I/O. A runtime drives it and supplies the witnessed state at the edge.
+//!    performs no I/O. It is an unconditional `no_std + alloc` library: a runtime drives
+//!    it, supplies the witnessed state at the edge, and provides any allocator.
 //! 3. **No dependency on other workspace crates.**
 //!
 //! # Shape, not types
@@ -33,8 +34,13 @@
 //! makes no judgment cannot own them. Persisting the `Ledger` and an `async` variant are
 //! likewise out of this core (see `BACKLOG.md`).
 
+#![no_std]
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
+
+extern crate alloc;
+
+use alloc::{boxed::Box, vec::Vec};
 
 /// The mechanical content identity of a [`Deed`] — Shaahid-owned canonical bytes.
 ///
@@ -223,6 +229,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
 
     fn fp(bytes: &[u8]) -> Fingerprint {
         Fingerprint::new(bytes.to_vec())

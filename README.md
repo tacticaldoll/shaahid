@@ -26,7 +26,10 @@ async edge — those are deferred (see `BACKLOG.md`) or lie outside the pattern'
 
 Depend on the curated **facade** (`shaahid`) — the recommended single entrypoint, which re-exports
 the public surface and carries a runnable witness doctest; the isolated core (`shaahid-contract`)
-stays available for direct use. See `CHANGELOG.md` for what each release adds.
+stays available for direct use. Both published crates are unconditional `no_std + alloc`
+libraries with one API shape; the composing system supplies the allocator. Shaahid does
+not claim allocation-free operation or provide a runtime or platform adapter. See
+`CHANGELOG.md` for what each release adds.
 
 ## What Shaahid owns, and what the domain supplies
 

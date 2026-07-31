@@ -71,6 +71,16 @@ compares meanings. Do not freeze a user-obligation trait ahead of its first comp
 
 Inherited discipline first, then this project's own resolved design decisions.
 
+- **`no_std + alloc` portability — resolved.** Both published crates compile
+  unconditionally without `std` and expose one unchanged adjudication API; there is
+  no `std`/`no_std` Cargo feature fork. This is deliberately not a no-allocation
+  claim: `Fingerprint` keeps its owned boxed bytes, `Outcome` keeps its contradiction
+  vector, and the composing system supplies the allocator. Rust 1.88 compilation for
+  `thumbv7em-none-eabi` is the direct portability reaction. Tianheng continues to
+  govern dependency, clock, async, and explicit I/O facts, but its Constitution is
+  unchanged because it does not observe target compilation. Allocators, runtimes,
+  target adapters, async, storage, serialization, and facade topology remain outside
+  this capability.
 - **Tianheng 0.3 adopter capabilities — resolved.** Governance now depends directly
   only on the composed `tianheng` shell. One Constitution feeds the runner, clean
   reaction, complete workspace-coverage assertion, structured negative proofs, and
