@@ -77,9 +77,13 @@ compares meanings. Do not freeze a user-obligation trait ahead of its first cons
 - **No architecture-decision-record files.** Decision provenance lives in git commit
   bodies and pull requests; reconsiderations live here; the living docs are the single
   source of truth for current state. The starter's `docs/adr/` was removed on birth.
-- **No OpenSpec change archive.** Sync promotes delta specs into `openspec/specs/` and
-  removes the change directory; git retains the deliberation. `openspec archive`
-  recreates `openspec/changes/archive/` — remove it after each sync.
+- **Sync and archive are two gates.** Sync promotes delta specs into `openspec/specs/`
+  and leaves the change directory in place — the change stays active for verification. A
+  distinct archive step then removes the change directory; git retains the deliberation.
+  No `openspec/changes/archive/` folder is created — archive means deletion, and
+  `openspec archive` (which recreates that folder) is not used. Reconsidered from the
+  earlier one-step stance ("sync removes the directory; there is no archive"), to make a
+  change's closure a distinct gate before its pull request.
 - **Definition of Done is single-sourced in `AGENTS.md`.** `README.md` and
   `docs/development-flow.md` point to it rather than restating a divergent subset.
 
