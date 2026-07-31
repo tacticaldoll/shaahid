@@ -85,6 +85,25 @@ Inherited discipline first, then this project's own resolved design decisions.
   separate record class. Scope held: the historical entries below keep their original
   wording, and `public-facade`'s spec framing was left to a future spec change (see Open
   Design Questions).
+- **Contradiction taxonomy is provably exhaustive — resolved.** `DriftedFingerprint`
+  and `SplitSeal` are not merely the two currently implemented; they **exhaust** the
+  mechanically-detectable, currently-silent structural facts a witness can raise about
+  the incoming `Deed`. Proof: a witness observes only `Seal` value-equality and
+  `Fingerprint` byte-equality, per-witness. Against one witnessed `Deed` that is a 2×2 —
+  (`S=,F=`) identical → clean `Attach`, no news; (`S≠,F≠`) unrelated → `Create`, no news;
+  (`S=,F≠`) → `DriftedFingerprint`; (`S≠,F=`) → `SplitSeal`. Drift requires `S=`, split
+  requires `S≠`; they are mutually exclusive and the grid has no third cell. Every
+  candidate for a third contradiction is either **already surfaced** — aggregate, bridge,
+  and cardinality facts are derivable from the per-index contradictions (the `is_clean`
+  accretion trap) — or **forbidden by an axiom**: within-`Ledger` auditing is a stateful
+  job and not about this incoming `Deed`; `Fingerprint` similarity or incoming-`Deed`
+  validation judges content; temporal order needs a clock. The residual silent-failure
+  surface (a wrong `Seal` whose content is internally consistent) is **irreducible**
+  without judging meaning — exactly the cost the semantic bill of purity accepts.
+  Consequence: the contradiction layer is the **complete** theorem of the vision — there
+  is no manifestation frontier here to grow into, and any future "detect more" proposal
+  must first answer this exhaustiveness. Recorded as a finding; no contract, API, or
+  Tianheng change.
 - **No architecture-decision-record files.** Decision provenance lives in git commit
   bodies and pull requests; reconsiderations live here; the living docs are the single
   source of truth for current state. The starter's `docs/adr/` was removed on birth.
