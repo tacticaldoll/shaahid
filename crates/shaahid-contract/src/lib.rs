@@ -55,7 +55,7 @@ use alloc::{boxed::Box, vec::Vec};
 /// domain's. The core owns only the canonical representation and the byte-for-byte
 /// comparison; `Fingerprint`s of different lengths compare as unequal, and none is
 /// rejected or normalized for its length.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Fingerprint(Box<[u8]>);
 
 impl Fingerprint {
@@ -78,7 +78,7 @@ impl Fingerprint {
 /// The core is generic over the `Seal` alone; the `Fingerprint` is a Shaahid-owned type.
 /// The core carries the `Seal` opaquely and never interprets it — deciding what a deed
 /// *means* is a domain judgment, not the core's (see the crate axioms).
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Deed<Seal> {
     /// The domain-supplied semantic identity, carried opaquely and compared only by value.
     pub seal: Seal,
@@ -100,7 +100,7 @@ impl<Seal> Deed<Seal> {
 /// verdict space is finite by design, so a genuinely new outcome should force a
 /// deliberate breaking change rather than silently widening the surface. The verdict is
 /// a mechanism, never a policy: it carries no response to attach — that lies outside the pattern.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Attestation<Seal> {
     /// The deed's `Seal` was new to the witnessed set: witness it as fresh work.
     Create,
@@ -120,7 +120,7 @@ pub enum Attestation<Seal> {
 /// anomalies are found. Keeping it closed forces any new anomaly kind through a
 /// deliberate breaking change, never a silent, additive widening of what counts as a
 /// contradiction.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Contradiction {
     /// A witnessed `Deed` shares the incoming `Seal` but carries a different `Fingerprint`
     /// (the domain reused an identity for changed content).
@@ -136,6 +136,21 @@ pub enum Contradiction {
     },
 }
 
+impl core::fmt::Display for Contradiction {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::DriftedFingerprint { witnessed_index } => write!(
+                f,
+                "drifted fingerprint against witnessed deed at index {witnessed_index}"
+            ),
+            Self::SplitSeal { witnessed_index } => write!(
+                f,
+                "split seal against witnessed deed at index {witnessed_index}"
+            ),
+        }
+    }
+}
+
 /// The full result of a [`witness`]: the create-or-attach [`Attestation`] and every
 /// structural [`Contradiction`] the incoming `Deed` raised against the witnessed set.
 ///
@@ -143,7 +158,7 @@ pub enum Contradiction {
 /// with one or more splits, or both. Contradictions are a list, never a single optional:
 /// one incoming `Deed` can expose several structural facts at once (and the witnessed
 /// ledger may already be inconsistent).
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Outcome<Seal> {
     /// The create-or-attach verdict, decided by `Seal` equality.
     pub attestation: Attestation<Seal>,
@@ -229,10 +244,34 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
+    use alloc::{format, vec};
+    use core::hash::{Hash, Hasher};
 
     fn fp(bytes: &[u8]) -> Fingerprint {
         Fingerprint::new(bytes.to_vec())
+    }
+
+    /// A trivial deterministic hasher, so `Hash` can be exercised without a concrete
+    /// `Hasher` from `std` (this `no_std + alloc` crate has none available otherwise).
+    #[derive(Default)]
+    struct AccumulatingHasher(u64);
+
+    impl Hasher for AccumulatingHasher {
+        fn finish(&self) -> u64 {
+            self.0
+        }
+
+        fn write(&mut self, bytes: &[u8]) {
+            for &byte in bytes {
+                self.0 = self.0.wrapping_mul(31).wrapping_add(u64::from(byte));
+            }
+        }
+    }
+
+    fn hash_of<T: Hash>(value: &T) -> u64 {
+        let mut hasher = AccumulatingHasher::default();
+        value.hash(&mut hasher);
+        hasher.finish()
     }
 
     // A domain seal that is `Eq` but deliberately NOT `Ord` and NOT `Hash`: that
@@ -390,5 +429,58 @@ mod tests {
             Contradiction::DriftedFingerprint { .. } => "drift",
             Contradiction::SplitSeal { .. } => "split",
         };
+    }
+
+    #[test]
+    fn fingerprint_and_contradiction_hash_without_a_seal_bound() {
+        // Neither type carries a Seal type parameter, so hashing them demands nothing
+        // of a Seal at all — unlike Deed/Attestation/Outcome below.
+        let _ = hash_of(&fp(b"a"));
+        let _ = hash_of(&Contradiction::SplitSeal { witnessed_index: 0 });
+    }
+
+    #[test]
+    fn deed_attestation_and_outcome_hash_when_seal_is_hash() {
+        let deed = Deed::new("seal:a", fp(b"content-a"));
+        let _ = hash_of(&deed);
+
+        let attestation: Attestation<&str> = Attestation::Attach("seal:a");
+        let _ = hash_of(&attestation);
+
+        let outcome = Outcome {
+            attestation,
+            contradictions: vec![Contradiction::SplitSeal { witnessed_index: 0 }],
+        };
+        let _ = hash_of(&outcome);
+    }
+
+    #[test]
+    fn equal_values_hash_equal() {
+        let a = fp(b"same");
+        let b = fp(b"same");
+        assert_eq!(a, b);
+        assert_eq!(hash_of(&a), hash_of(&b));
+
+        let c1 = Contradiction::DriftedFingerprint { witnessed_index: 2 };
+        let c2 = Contradiction::DriftedFingerprint { witnessed_index: 2 };
+        assert_eq!(c1, c2);
+        assert_eq!(hash_of(&c1), hash_of(&c2));
+    }
+
+    #[test]
+    fn drifted_fingerprint_display_names_variant_and_index() {
+        let message = format!(
+            "{}",
+            Contradiction::DriftedFingerprint { witnessed_index: 3 }
+        );
+        assert!(message.contains("drift"));
+        assert!(message.contains('3'));
+    }
+
+    #[test]
+    fn split_seal_display_names_variant_and_index() {
+        let message = format!("{}", Contradiction::SplitSeal { witnessed_index: 5 });
+        assert!(message.contains("split"));
+        assert!(message.contains('5'));
     }
 }
