@@ -4,6 +4,36 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-08-01
+
+A derive-and-composition release. No breaking change to the public API surface: every
+change here adds a new trait implementation to an already-published type, or improves a
+test's fidelity. No existing signature, derive, or behavior changed.
+
+### Added
+
+- **`Hash` on the identity types**: `Fingerprint` and `Contradiction` implement `Hash`
+  unconditionally; `Deed<Seal>`, `Attestation<Seal>`, and `Outcome<Seal>` implement it
+  whenever `Seal: Hash`. Lets a composing system key a `HashMap`/`HashSet` on these types.
+- **`Display` on `Contradiction`**: a human-readable, one-line message per variant naming
+  the variant kind and the conflicting `witnessed_index`, independent of the existing
+  `Debug`. Intended for operator-facing logs, not a machine-parseable format.
+- **`PartialOrd`/`Ord` on the identity types**: the same shape as `Hash` above —
+  `Fingerprint` and `Contradiction` unconditionally, `Deed<Seal>`/`Attestation<Seal>`/
+  `Outcome<Seal>` whenever `Seal` implements it. Unlike `Hash`, this also lets a composing
+  system key an `alloc`-only sorted collection (`BTreeMap`/`BTreeSet`) with no `std` —
+  the only sorted-collection option shaahid-contract's own no_std + alloc + MSRV
+  1.88 thumbv7em-none-eabi target can use. The derived order is mechanical (field/variant
+  declaration order) and carries no claim about severity, precedence, or correctness.
+
+### Changed
+
+- **The facade's composition test now demonstrates `Contradiction`'s `Display`**: the
+  quarantine branch of `idempotency_gate_resolves_four_trajectories` used to compute and
+  discard a `(kind, index)` pair per contradiction; it now captures and asserts on the
+  `Display` message instead, so the new capability is proven to compose through the
+  `shaahid` facade, not only in `shaahid-contract`'s own unit tests.
+
 ## [0.1.2] - 2026-07-30
 
 A portability-and-governance release. No change to the public API surface: `Box` and
@@ -91,6 +121,7 @@ positioning and makes the facade's completeness invariant structural.
   observable alarm, not a judgment; the durable `Ledger` and any contradiction response are
   downstream concerns. See `BACKLOG.md`.
 
+[0.1.3]: https://github.com/tacticaldoll/shaahid/releases/tag/v0.1.3
 [0.1.2]: https://github.com/tacticaldoll/shaahid/releases/tag/v0.1.2
 [0.1.1]: https://github.com/tacticaldoll/shaahid/releases/tag/v0.1.1
 [0.1.0]: https://github.com/tacticaldoll/shaahid/releases/tag/v0.1.0
