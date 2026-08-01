@@ -109,18 +109,18 @@ dependencies = [
 
 [[package]]
 name = "shaahid"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "shaahid-contract",
 ]
 
 [[package]]
 name = "shaahid-contract"
-version = "0.1.2"
+version = "0.1.3"
 
 [[package]]
 name = "shaahid-governance"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "tianheng",
 ]
