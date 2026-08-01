@@ -55,7 +55,7 @@ use alloc::{boxed::Box, vec::Vec};
 /// domain's. The core owns only the canonical representation and the byte-for-byte
 /// comparison; `Fingerprint`s of different lengths compare as unequal, and none is
 /// rejected or normalized for its length.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Fingerprint(Box<[u8]>);
 
 impl Fingerprint {
@@ -78,7 +78,7 @@ impl Fingerprint {
 /// The core is generic over the `Seal` alone; the `Fingerprint` is a Shaahid-owned type.
 /// The core carries the `Seal` opaquely and never interprets it — deciding what a deed
 /// *means* is a domain judgment, not the core's (see the crate axioms).
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Deed<Seal> {
     /// The domain-supplied semantic identity, carried opaquely and compared only by value.
     pub seal: Seal,
@@ -100,7 +100,7 @@ impl<Seal> Deed<Seal> {
 /// verdict space is finite by design, so a genuinely new outcome should force a
 /// deliberate breaking change rather than silently widening the surface. The verdict is
 /// a mechanism, never a policy: it carries no response to attach — that lies outside the pattern.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Attestation<Seal> {
     /// The deed's `Seal` was new to the witnessed set: witness it as fresh work.
     Create,
@@ -120,7 +120,11 @@ pub enum Attestation<Seal> {
 /// anomalies are found. Keeping it closed forces any new anomaly kind through a
 /// deliberate breaking change, never a silent, additive widening of what counts as a
 /// contradiction.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+///
+/// `PartialOrd`/`Ord` are derived so this can key an `alloc`-only sorted collection
+/// (`BTreeMap`/`BTreeSet`); the resulting order is mechanical (variant declaration
+/// order), not a claim about severity, precedence, or correctness.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Contradiction {
     /// A witnessed `Deed` shares the incoming `Seal` but carries a different `Fingerprint`
     /// (the domain reused an identity for changed content).
@@ -158,7 +162,7 @@ impl core::fmt::Display for Contradiction {
 /// with one or more splits, or both. Contradictions are a list, never a single optional:
 /// one incoming `Deed` can expose several structural facts at once (and the witnessed
 /// ledger may already be inconsistent).
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Outcome<Seal> {
     /// The create-or-attach verdict, decided by `Seal` equality.
     pub attestation: Attestation<Seal>,
@@ -244,7 +248,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::collections::{BTreeMap, BTreeSet};
     use alloc::{format, vec};
+    use core::cmp::Ordering;
     use core::hash::{Hash, Hasher};
 
     fn fp(bytes: &[u8]) -> Fingerprint {
@@ -465,6 +471,57 @@ mod tests {
         let c2 = Contradiction::DriftedFingerprint { witnessed_index: 2 };
         assert_eq!(c1, c2);
         assert_eq!(hash_of(&c1), hash_of(&c2));
+    }
+
+    #[test]
+    fn fingerprint_and_contradiction_key_an_alloc_only_sorted_collection() {
+        // BTreeMap/BTreeSet need only Ord, unlike HashMap/HashSet which need std — the
+        // only sorted-collection option in a real no_std + alloc environment.
+        let mut by_fingerprint = BTreeMap::new();
+        by_fingerprint.insert(fp(b"a"), "first");
+        by_fingerprint.insert(fp(b"b"), "second");
+        assert_eq!(by_fingerprint.get(&fp(b"a")), Some(&"first"));
+
+        let mut contradictions = BTreeSet::new();
+        contradictions.insert(Contradiction::SplitSeal { witnessed_index: 0 });
+        contradictions.insert(Contradiction::DriftedFingerprint { witnessed_index: 1 });
+        assert_eq!(contradictions.len(), 2);
+    }
+
+    #[test]
+    fn deed_attestation_and_outcome_key_a_sorted_collection_when_seal_is_ord() {
+        let mut by_deed = BTreeMap::new();
+        by_deed.insert(Deed::new("seal:a", fp(b"content-a")), "recorded");
+        assert_eq!(
+            by_deed.get(&Deed::new("seal:a", fp(b"content-a"))),
+            Some(&"recorded")
+        );
+
+        let mut attestations = BTreeSet::new();
+        attestations.insert(Attestation::<&str>::Create);
+        attestations.insert(Attestation::Attach("seal:a"));
+        assert_eq!(attestations.len(), 2);
+
+        let outcome = Outcome {
+            attestation: Attestation::<&str>::Create,
+            contradictions: vec![Contradiction::SplitSeal { witnessed_index: 0 }],
+        };
+        let mut outcomes = BTreeSet::new();
+        outcomes.insert(outcome);
+        assert_eq!(outcomes.len(), 1);
+    }
+
+    #[test]
+    fn derived_order_is_consistent_with_eq() {
+        let a = fp(b"same");
+        let b = fp(b"same");
+        assert_eq!(a, b);
+        assert_eq!(a.cmp(&b), Ordering::Equal);
+
+        let c1 = Contradiction::DriftedFingerprint { witnessed_index: 2 };
+        let c2 = Contradiction::DriftedFingerprint { witnessed_index: 2 };
+        assert_eq!(c1, c2);
+        assert_eq!(c1.cmp(&c2), Ordering::Equal);
     }
 
     #[test]
