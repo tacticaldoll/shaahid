@@ -76,7 +76,7 @@ Tianheng's generated projection.
 
 ### `shaahid-contract::crate` (module)
 
-> the sans-I/O adjudication core reads no ambient clock and stays runtime-agnostic: witnessed state is supplied at the runtime edge, and its public API exposes no async fn.
+> the sans-I/O adjudication core makes no inline `std::time` `now` call and its public API exposes no async fn: witnessed state and asynchronous driving are supplied at the runtime edge. Coverage is partial by nature (a clock read through a method on a value, such as `Instant::elapsed`, is invisible to a source scan), so this tooth complements review rather than replacing it.
 
 - **rule**: inline symbol path confined to module (confined_prefix: std::time; ending_with: now)
 - **kind**: module · **severity**: enforce · **crate**: shaahid-contract
@@ -113,7 +113,7 @@ Tianheng's generated projection.
 
 ### `shaahid-contract::crate` (semantic)
 
-> the sans-I/O adjudication core reads no ambient clock and stays runtime-agnostic: witnessed state is supplied at the runtime edge, and its public API exposes no async fn.
+> the sans-I/O adjudication core makes no inline `std::time` `now` call and its public API exposes no async fn: witnessed state and asynchronous driving are supplied at the runtime edge. Coverage is partial by nature (a clock read through a method on a value, such as `Instant::elapsed`, is invisible to a source scan), so this tooth complements review rather than replacing it.
 
 - **rule**: must not expose async fn (including_submodules: true; scan_depth: subtree)
 - **kind**: semantic · **severity**: enforce · **crate**: shaahid-contract
