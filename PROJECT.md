@@ -50,9 +50,11 @@ The behavior that must be protected first:
 - **`no_std + alloc` portability**: both published crates compile without `std` and
   keep one API shape. Existing owned fingerprints and contradiction collections use
   `alloc`; choosing and supplying an allocator remains outside Shaahid.
-- **Governance with teeth**: Tianheng and project specs enforce the boundaries prose
-  claims — with the honest exception that "no semantic judgment" is not statically
-  expressible (see BACKLOG).
+- **Governance with teeth**: Tianheng and project checks enforce the structural
+  shadow of the boundaries prose claims; what a source scan cannot observe (for
+  example macro-expanded I/O or a clock read through a method on a value) stays
+  review-governed. "No semantic judgment" is not statically expressible at all (see
+  BACKLOG).
 
 ## Elegance
 
