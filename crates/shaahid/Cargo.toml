@@ -9,7 +9,7 @@ repository.workspace = true
 readme = "README.md"
 keywords = ["idempotency", "adjudication", "sans-io", "witness", "deduplication"]
 categories = ["rust-patterns"]
-publish.workspace = true
+publish = true
 
 [dependencies]
 shaahid-contract.workspace = true

@@ -127,13 +127,13 @@ Inherited discipline first, then this project's own resolved design decisions.
 - **No architecture-decision-record files.** Decision provenance lives in git commit
   bodies and pull requests; reconsiderations live here; the living docs are the single
   source of truth for current state. The starter's `docs/adr/` was removed on birth.
-- **Sync and archive are two gates.** Sync promotes delta specs into `openspec/specs/`
-  and leaves the change directory in place — the change stays active for verification. A
-  distinct archive step then removes the change directory; git retains the deliberation.
-  No `openspec/changes/archive/` folder is created — archive means deletion, and
-  `openspec archive` (which recreates that folder) is not used. Reconsidered from the
-  earlier one-step stance ("sync removes the directory; there is no archive"), to make a
-  change's closure a distinct gate before its pull request.
+- **Sync ends the change; there is no archive gate.** Sync promotes verified delta specs
+  into `openspec/specs/` and then removes the change directory with `git rm -r`; git
+  retains the deliberation. `openspec archive` is never run, and the
+  `openspec/changes/archive/.gitkeep` scaffold holds nothing. Reversed from a two-gate
+  stance (sync leaving the change directory in place, a distinct archive step removing it)
+  when the governance was re-skeletoned from tacticaldoll/rust-family-template: the separate archive
+  state had no reader.
 - **Definition of Done is single-sourced in `AGENTS.md`.** `README.md` and
   `docs/development-flow.md` point to it rather than restating a divergent subset.
 - **Attestation shape — resolved.** A closed two-variant enum `Attestation<Seal>`:

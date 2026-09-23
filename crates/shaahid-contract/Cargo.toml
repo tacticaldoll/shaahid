@@ -9,6 +9,6 @@ repository.workspace = true
 readme = "README.md"
 keywords = ["idempotency", "adjudication", "sans-io", "deduplication", "witness"]
 categories = ["rust-patterns"]
-publish.workspace = true
+publish = true
 
 [dependencies]
