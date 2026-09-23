@@ -37,10 +37,9 @@ const ACTIVE_PROSE_FILES: &[&str] = &[
 const LAW_PROJECTION_PREAMBLE: &str = "\
 # Shaahid Tianheng Law Projection
 
-Generated from `constitution()` in `crates/shaahid-governance/src/main.rs`.
-**Do not edit by hand.** Regenerate it with:
-`BLESS=1 cargo test -p shaahid-governance law_projection_is_fresh`.
-If the law itself is wrong, amend the Constitution through the governed OpenSpec workflow.
+This file is generated from `constitution()` in `crates/shaahid-governance/src/main.rs`.
+The Rust declaration is authoritative; do not edit the projection by hand.
+Regenerate it with `BLESS=1 cargo test -p shaahid-governance law_projection_is_fresh`.
 
 This projection covers Tianheng-observable structure only. The custom active-prose and
 facade-reexports reactions remain executable in `shaahid-governance`, but are outside
@@ -540,7 +539,12 @@ guibiao = { path = "../guibiao" }
             INLINE_RULE,
             INLINE_FACT,
             "path-in-module",
-            &[("module", "crate"), ("path", "std::fs::metadata")],
+            &[
+                ("governing_package", "shaahid-contract"),
+                ("module", "crate"),
+                ("path", "std::fs::metadata"),
+                ("unit", "src/lib.rs"),
+            ],
         );
     }
 
@@ -573,7 +577,12 @@ guibiao = { path = "../guibiao" }
             INLINE_RULE,
             INLINE_FACT,
             "path-in-module",
-            &[("module", "crate"), ("path", "std::time::SystemTime::now")],
+            &[
+                ("governing_package", "shaahid-contract"),
+                ("module", "crate"),
+                ("path", "std::time::SystemTime::now"),
+                ("unit", "src/lib.rs"),
+            ],
         );
     }
 
@@ -716,10 +725,12 @@ tokio = { path = "../tokio" }
             ASYNC_FACT,
             "async-free-function",
             &[
+                ("governing_package", "shaahid-contract"),
                 ("module", "crate"),
                 ("name", "leak"),
                 ("owner", "crate"),
                 ("owner_kind", "module"),
+                ("unit", "src/lib.rs"),
             ],
         );
     }
@@ -743,10 +754,12 @@ tokio = { path = "../tokio" }
             ASYNC_FACT,
             "async-free-function",
             &[
+                ("governing_package", "shaahid-contract"),
                 ("module", "crate::inner"),
                 ("name", "leak"),
                 ("owner", "crate::inner"),
                 ("owner_kind", "module"),
+                ("unit", "src/lib.rs"),
             ],
         );
     }
@@ -758,10 +771,9 @@ tokio = { path = "../tokio" }
         let outcome =
             semantic_reaction_outcome("shaahid-governance-semantic-clean", "pub fn witness() {}\n");
 
-        assert_eq!(
-            outcome,
-            Outcome::Clean,
-            "a core with no async exposure must raise no semantic violation"
+        assert!(
+            matches!(outcome, Outcome::Clean(_)),
+            "a core with no async exposure must raise no semantic violation: {outcome:?}"
         );
     }
 
