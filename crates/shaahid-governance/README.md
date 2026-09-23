@@ -7,9 +7,12 @@ This crate is an internal gate, not a published library (`publish = false`). It
 depends only on the composed [Tianheng](https://github.com/tacticaldoll/tianheng)
 0.6.1 harness and uses one Constitution for the command-line reaction and architecture
 tests. That Constitution governs all three Cargo dependency tables, complete workspace
-coverage, and the adjudication core's observable sans-I/O shape: no ambient-clock
-reads, no exposed `async fn`, and explicit source-level guards against
-`std::io/fs/net/process`.
+coverage, and the adjudication core's observable sans-I/O shape: no inline `std::time`
+call ending in `now`, no public `async fn`, and explicit source-level guards against
+inline `std::io/fs/net/process` calls. Macro-expanded I/O and a clock read through a
+method on a value (such as `Instant::elapsed`) are invisible to a source scan, and a
+function written to return `impl Future` is not an `async fn`; all three stay
+review-governed.
 
 `AGENTS.shaahid-law.md` is generated from that Constitution and byte-checked in tests.
 Regenerate it with:
