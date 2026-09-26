@@ -261,6 +261,7 @@ cargo deny check
 cargo run -p shaahid-governance -- check --manifest-path Cargo.toml
 cargo +1.88 check -p shaahid-contract -p shaahid --target thumbv7em-none-eabi
 ./scripts/changelog-guard.sh
+npx -y @fission-ai/openspec@1.13.2 validate --all --strict --no-interactive
 cargo +1.88 build --workspace
 ```
 
@@ -268,4 +269,5 @@ CI (`.github/workflows/ci.yml`) runs the same gates on push and pull request. Th
 `thumbv7em-none-eabi` check proves the two published libraries compile without `std`; it does not
 claim allocation-free operation or target-specific integration. Rust style lives in these checks:
 rustfmt formats, clippy denies warnings, rustdoc denies documentation warnings, cargo-deny owns
-resolved supply-chain policy, and `shaahid-governance` owns Tianheng architecture boundaries.
+resolved supply-chain policy, `shaahid-governance` owns Tianheng architecture boundaries, and the
+pinned OpenSpec CLI validates the specs and any active change.
