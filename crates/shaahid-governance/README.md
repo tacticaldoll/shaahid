@@ -5,7 +5,7 @@ constitution.
 
 This crate is an internal gate, not a published library (`publish = false`). It
 depends only on the composed [Tianheng](https://github.com/tacticaldoll/tianheng)
-0.6.1 harness and uses one Constitution for the command-line reaction and architecture
+0.7.0 harness and uses one Constitution for the command-line reaction and architecture
 tests. That Constitution governs all three Cargo dependency tables, complete workspace
 coverage, and the adjudication core's observable sans-I/O shape: no inline `std::time`
 call ending in `now`, no public `async fn`, and explicit source-level guards against
